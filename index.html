@@ -714,12 +714,12 @@
         <div class="stat-lbl">Champions en commun</div>
       </div>
       <div class="stat-box">
-        <div class="stat-val" id="stat-summin" style="color:#c8a96e">—</div>
-        <div class="stat-lbl">Σ minimum (points partagés)</div>
+        <div class="stat-val" id="stat-summin" style="color:#6ab0e8">—</div>
+        <div class="stat-lbl">Total pts Joueur 1</div>
       </div>
       <div class="stat-box">
-        <div class="stat-val" id="stat-summax">—</div>
-        <div class="stat-lbl">Σ maximum (potentiel total)</div>
+        <div class="stat-val" id="stat-summax" style="color:#e8846a">—</div>
+        <div class="stat-lbl">Total pts Joueur 2</div>
       </div>
     </div>
 
@@ -743,7 +743,7 @@
             <th>Champion</th>
             <th class="right">Joueur 1</th>
             <th class="right">Joueur 2</th>
-            <th class="right">Min (synergie)</th>
+            <th class="right">Compatibilité</th>
           </tr>
         </thead>
         <tbody id="top-table-body">
@@ -852,24 +852,42 @@ function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
   m1.forEach(function(m) { map1[m.championId] = m.championPoints; });
   m2.forEach(function(m) { map2[m.championId] = m.championPoints; });
 
+  // Totaux de points par joueur
+  var total1 = m1.reduce(function(s, m) { return s + m.championPoints; }, 0);
+  var total2 = m2.reduce(function(s, m) { return s + m.championPoints; }, 0);
+
   var allIds = {};
   Object.keys(map1).forEach(function(id) { allIds[id] = true; });
   Object.keys(map2).forEach(function(id) { allIds[id] = true; });
 
-  var sumMin = 0, sumMax = 0;
+  // Pour chaque champion : ratio de chaque joueur, puis min/max des ratios
+  // Compatibilité globale = moyenne des (min_ratio/max_ratio) sur les champions communs
   var sharedChamps = [];
+  var sumCompatScore = 0;
 
   Object.keys(allIds).forEach(function(id) {
     var pts1 = map1[id] || 0;
     var pts2 = map2[id] || 0;
-    sumMin += Math.min(pts1, pts2);
-    sumMax += Math.max(pts1, pts2);
-    if (pts1 > 0 && pts2 > 0) {
-      sharedChamps.push({ id: id, pts1: pts1, pts2: pts2, mn: Math.min(pts1, pts2) });
-    }
+    if (pts1 === 0 || pts2 === 0) return; // on ne compte que les champions communs
+
+    var ratio1 = total1 > 0 ? pts1 / total1 : 0; // ex: 0.50
+    var ratio2 = total2 > 0 ? pts2 / total2 : 0;
+
+    var minRatio = Math.min(ratio1, ratio2);
+    var maxRatio = Math.max(ratio1, ratio2);
+    var champCompat = maxRatio > 0 ? minRatio / maxRatio : 0; // 0..1
+
+    sumCompatScore += champCompat;
+    sharedChamps.push({
+      id: id,
+      pts1: pts1, pts2: pts2,
+      ratio1: ratio1, ratio2: ratio2,
+      champCompat: champCompat
+    });
   });
 
-  var compat = sumMax > 0 ? (sumMin / sumMax) * 100 : 0;
+  // Score global = moyenne des compatibilités par champion commun
+  var compat = sharedChamps.length > 0 ? (sumCompatScore / sharedChamps.length) * 100 : 0;
   var compatStr = compat.toFixed(1);
 
   document.getElementById('score-pct').textContent = compatStr + '%';
@@ -880,10 +898,11 @@ function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
   }, 100);
 
   document.getElementById('stat-champions').textContent = sharedChamps.length;
-  document.getElementById('stat-summin').textContent = sumMin.toLocaleString('fr-FR');
-  document.getElementById('stat-summax').textContent = sumMax.toLocaleString('fr-FR');
+  // Afficher les totaux de points de chaque joueur
+  document.getElementById('stat-summin').textContent = total1.toLocaleString('fr-FR') + ' pts';
+  document.getElementById('stat-summax').textContent = total2.toLocaleString('fr-FR') + ' pts';
 
-  sharedChamps.sort(function(a, b) { return b.mn - a.mn; });
+  sharedChamps.sort(function(a, b) { return b.champCompat - a.champCompat; });
 
   var bestCard = document.getElementById('best-champ-card');
   if (sharedChamps.length > 0) {
@@ -897,10 +916,10 @@ function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
       '<div class="champ-info">' +
         '<div class="champ-name">' + champName + '</div>' +
         '<div class="champ-pts-row">' +
-          '<div class="champ-pts p1">' + name1 + '#' + tag1 + ' : <span>' + best.pts1.toLocaleString('fr-FR') + '</span> pts</div>' +
-          '<div class="champ-pts p2">' + name2 + '#' + tag2 + ' : <span>' + best.pts2.toLocaleString('fr-FR') + '</span> pts</div>' +
+          '<div class="champ-pts p1">' + name1 + '#' + tag1 + ' : <span>' + best.pts1.toLocaleString('fr-FR') + '</span> pts <em style="color:var(--text-dim)">(' + (best.ratio1 * 100).toFixed(2) + '%)</em></div>' +
+          '<div class="champ-pts p2">' + name2 + '#' + tag2 + ' : <span>' + best.pts2.toLocaleString('fr-FR') + '</span> pts <em style="color:var(--text-dim)">(' + (best.ratio2 * 100).toFixed(2) + '%)</em></div>' +
         '</div>' +
-        '<div style="margin-top:8px;font-size:.85rem;color:var(--text-dim);font-style:italic;">Synergie commune : <strong style="color:var(--gold)">' + best.mn.toLocaleString('fr-FR') + '</strong> points</div>' +
+        '<div style="margin-top:8px;font-size:.85rem;color:var(--text-dim);font-style:italic;">Compatibilité sur ce champion : <strong style="color:var(--gold)">' + (best.champCompat * 100).toFixed(1) + '%</strong></div>' +
       '</div>';
   } else {
     bestCard.innerHTML = '<div style="color:var(--text-dim);font-style:italic;">Aucun champion joué en commun.</div>';
@@ -918,9 +937,9 @@ function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
     tr.innerHTML =
       '<td><span class="rank-num">' + (i + 1) + '</span></td>' +
       '<td><div class="champ-cell">' + imgHtml + '<span>' + champName + '</span></div></td>' +
-      '<td class="right pts-p1">' + c.pts1.toLocaleString('fr-FR') + '</td>' +
-      '<td class="right pts-p2">' + c.pts2.toLocaleString('fr-FR') + '</td>' +
-      '<td class="right pts-min">' + c.mn.toLocaleString('fr-FR') + '</td>';
+      '<td class="right pts-p1">' + c.pts1.toLocaleString('fr-FR') + '<br><em style="font-size:.8em;color:var(--text-dim)">(' + (c.ratio1*100).toFixed(2) + '%)</em></td>' +
+      '<td class="right pts-p2">' + c.pts2.toLocaleString('fr-FR') + '<br><em style="font-size:.8em;color:var(--text-dim)">(' + (c.ratio2*100).toFixed(2) + '%)</em></td>' +
+      '<td class="right pts-min">' + (c.champCompat * 100).toFixed(1) + '%</td>';
     tbody.appendChild(tr);
   });
 
