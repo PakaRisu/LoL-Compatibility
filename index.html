@@ -586,6 +586,99 @@
     background: linear-gradient(90deg, transparent, var(--border), transparent);
     margin: 32px 0;
   }
+
+  /* ── Share section ── */
+  .share-section { margin-bottom: 0; }
+
+  .share-buttons {
+    display: flex;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+
+  .btn-share {
+    flex: 1;
+    min-width: 160px;
+    padding: 13px 20px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .btn-share:hover {
+    border-color: var(--gold);
+    background: rgba(200,169,110,0.07);
+  }
+
+  .share-icon { margin-right: 6px; }
+
+  .copy-confirm {
+    display: none;
+    margin-top: 12px;
+    color: #6ab0e8;
+    font-style: italic;
+    font-size: 0.9rem;
+    animation: fadeDown 0.3s ease;
+  }
+
+  /* ── Formula section ── */
+  .formula-section { }
+
+  .formula-content {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+
+  @media (max-width: 600px) { .formula-content { grid-template-columns: 1fr; } }
+
+  .formula-block {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 16px 18px;
+  }
+
+  .formula-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    margin-bottom: 8px;
+  }
+
+  .formula-eq {
+    font-family: 'Courier New', monospace;
+    font-size: 0.95rem;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+    word-break: break-word;
+  }
+
+  .formula-note {
+    font-size: 0.85rem;
+    font-style: italic;
+    color: var(--text-dim);
+    line-height: 1.5;
+  }
+
+  .formula-footer {
+    grid-column: 1 / -1;
+    background: rgba(200,169,110,0.05);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 12px 16px;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
@@ -751,7 +844,58 @@
         </tbody>
       </table>
     </div>
+
+    <div class="divider"></div>
+
+    <!-- Share section -->
+    <div class="share-section card" id="share-section">
+      <div class="section-title">Partager les résultats</div>
+      <div class="share-buttons">
+        <button class="btn-share" id="btn-copy" onclick="copyText()">
+          <span class="share-icon">📋</span> Copier le texte
+        </button>
+        <button class="btn-share" id="btn-jpg" onclick="exportJPG()">
+          <span class="share-icon">🖼</span> Exporter en image
+        </button>
+      </div>
+      <div id="copy-confirm" class="copy-confirm">✓ Copié dans le presse-papier !</div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Formulas explanation -->
+    <div class="formula-section card">
+      <div class="section-title">Comment le score est calculé</div>
+      <div class="formula-content">
+        <div class="formula-block">
+          <div class="formula-label">1. Ratio d'un champion pour un joueur</div>
+          <div class="formula-eq">ratio = points_champion ÷ points_total_joueur</div>
+          <div class="formula-note">Exemple : 100 000 pts sur Ahri, 200 000 pts au total → ratio = 50%</div>
+        </div>
+        <div class="formula-block">
+          <div class="formula-label">2. Compatibilité par champion</div>
+          <div class="formula-eq">compat = min(ratio₁, ratio₂) ÷ max(ratio₁, ratio₂)</div>
+          <div class="formula-note">Deux joueurs à 50% et 50% → 100% · Deux joueurs à 10% et 50% → 20%</div>
+        </div>
+        <div class="formula-block">
+          <div class="formula-label">3. Poids d'un champion (moyenne géométrique)</div>
+          <div class="formula-eq">poids = √(ratio₁ × ratio₂)</div>
+          <div class="formula-note">Un champion important pour les deux joueurs pèse plus. Un champion à 0.5% chez l'un pèse quasi zéro même s'il est à 30% chez l'autre.</div>
+        </div>
+        <div class="formula-block">
+          <div class="formula-label">4. Score final (moyenne pondérée)</div>
+          <div class="formula-eq">score = Σ(compat × poids) ÷ Σ(poids)</div>
+          <div class="formula-note">Les champions peu joués par l'un ou l'autre n'influencent quasiment pas le résultat final — ce sont vos vrais champions favoris qui comptent.</div>
+        </div>
+        <div class="formula-note formula-footer">
+          Cette méthode est équitable entre un joueur casual et un no-life : seule la <em>répartition relative</em> des points compte, pas leur valeur absolue.
+        </div>
+      </div>
+    </div>
   </div>
+
+  <!-- Hidden canvas for JPG export -->
+  <canvas id="export-canvas" style="display:none"></canvas>
 
 </div>
 
@@ -954,8 +1098,18 @@ function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
     tbody.appendChild(tr);
   });
 
+  // Store data for sharing
+  window._shareData = {
+    name1: name1, tag1: tag1,
+    name2: name2, tag2: tag2,
+    compat: compat, compatStr: compatStr,
+    sharedChamps: sharedChamps,
+    champMap: champMap
+  };
+
   clearStatus();
   document.getElementById('results').style.display = 'block';
+  document.getElementById('share-section').style.display = 'block';
   document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
 }
 
@@ -965,6 +1119,273 @@ function getCompatDesc(pct) {
   if (pct >= 40) return "Bonne synergie — un pool de champions commun solide, même si les styles diffèrent.";
   if (pct >= 20) return "Synergie modérée — quelques champions clés en commun, mais des priorités différentes.";
   return "Synergie faible — vos champions favoris respectifs ne se recoupent quasiment pas.";
+}
+
+// ── Share functions ─────────────────────────────────────────────────
+
+function copyText() {
+  var d = window._shareData;
+  if (!d) return;
+  var best = d.sharedChamps[0];
+  var bestName = (best && d.champMap[best.id]) ? d.champMap[best.id].name : '—';
+  var bestPct = best ? (best.champCompat * 100).toFixed(1) : '—';
+  var lines = [
+    d.name1 + '#' + d.tag1 + ' est compatible avec ' + d.name2 + '#' + d.tag2 + ' à ' + d.compatStr + '%',
+    'Leur champion le plus compatible est ' + bestName + ' avec une compatibilité de ' + bestPct + '%',
+    '',
+    'Top champions en commun :'
+  ];
+  d.sharedChamps.slice(0, 10).forEach(function(c, i) {
+    var name = d.champMap[c.id] ? d.champMap[c.id].name : 'ID ' + c.id;
+    lines.push('  ' + (i+1) + '. ' + name + ' — ' + (c.champCompat*100).toFixed(1) + '% (pts: ' + c.pts1.toLocaleString('fr-FR') + ' / ' + c.pts2.toLocaleString('fr-FR') + ')');
+  });
+  lines.push('');
+  lines.push('Calculé sur summoner-synergy.vercel.app');
+
+  var text = lines.join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(function() { showCopyConfirm(); });
+  } else {
+    var ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    showCopyConfirm();
+  }
+}
+
+function showCopyConfirm() {
+  var el = document.getElementById('copy-confirm');
+  el.style.display = 'block';
+  setTimeout(function() { el.style.display = 'none'; }, 2500);
+}
+
+function exportJPG() {
+  var d = window._shareData;
+  if (!d) return;
+
+  var btn = document.getElementById('btn-jpg');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="share-icon">⏳</span> Génération…';
+
+  var W = 900, H = 620 + Math.min(d.sharedChamps.length, 10) * 38;
+  var canvas = document.getElementById('export-canvas');
+  canvas.width = W;
+  canvas.height = H;
+  var ctx = canvas.getContext('2d');
+
+  // Background
+  ctx.fillStyle = '#050810';
+  ctx.fillRect(0, 0, W, H);
+
+  // Gold top border
+  var topGrad = ctx.createLinearGradient(0,0,W,0);
+  topGrad.addColorStop(0, 'transparent');
+  topGrad.addColorStop(0.5, '#c8a96e');
+  topGrad.addColorStop(1, 'transparent');
+  ctx.fillStyle = topGrad;
+  ctx.fillRect(0, 0, W, 2);
+
+  // Grid lines (subtle)
+  ctx.strokeStyle = 'rgba(200,169,110,0.04)';
+  ctx.lineWidth = 1;
+  for (var gx = 0; gx < W; gx += 60) { ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
+  for (var gy = 0; gy < H; gy += 60) { ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+
+  // Title
+  ctx.fillStyle = '#f0d89a';
+  ctx.font = 'bold 28px Georgia, serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('SUMMONER SYNERGY', W/2, 50);
+
+  // Gold line under title
+  var lineGrad = ctx.createLinearGradient(W/2-120,0,W/2+120,0);
+  lineGrad.addColorStop(0,'transparent'); lineGrad.addColorStop(0.5,'#c8a96e'); lineGrad.addColorStop(1,'transparent');
+  ctx.fillStyle = lineGrad;
+  ctx.fillRect(W/2-120, 62, 240, 1);
+
+  // Summoner names
+  ctx.font = '20px Georgia, serif';
+  ctx.fillStyle = '#6ab0e8';
+  ctx.textAlign = 'left';
+  ctx.fillText(d.name1 + '#' + d.tag1, 60, 106);
+  ctx.fillStyle = '#7a7568';
+  ctx.textAlign = 'center';
+  ctx.fillText('⚔', W/2, 106);
+  ctx.fillStyle = '#e8846a';
+  ctx.textAlign = 'right';
+  ctx.fillText(d.name2 + '#' + d.tag2, W-60, 106);
+
+  // Big score
+  ctx.textAlign = 'center';
+  ctx.font = 'bold 72px Georgia, serif';
+  ctx.fillStyle = '#f0d89a';
+  ctx.shadowColor = 'rgba(200,169,110,0.4)';
+  ctx.shadowBlur = 20;
+  ctx.fillText(d.compatStr + '%', W/2, 210);
+  ctx.shadowBlur = 0;
+
+  ctx.font = 'italic 15px Georgia, serif';
+  ctx.fillStyle = '#7a7568';
+  ctx.fillText('de compatibilité', W/2, 235);
+
+  // Compat description
+  ctx.font = 'italic 14px Georgia, serif';
+  ctx.fillStyle = '#ccc8b8';
+  ctx.fillText(getCompatDesc(parseFloat(d.compatStr)), W/2, 265);
+
+  // Best champ block
+  var best = d.sharedChamps[0];
+  if (best) {
+    var bestChamp = d.champMap[best.id];
+    var bestName = bestChamp ? bestChamp.name : 'ID ' + best.id;
+
+    // Card bg
+    roundRect(ctx, 60, 290, W-120, 100, 4, 'rgba(13,18,32,0.9)', 'rgba(200,169,110,0.35)');
+
+    ctx.font = '11px Georgia, serif';
+    ctx.fillStyle = '#8b6914';
+    ctx.textAlign = 'left';
+    ctx.fillText('CHAMPION EN COMMUN LE PLUS FORT', 86, 314);
+
+    var drawChamp = function() {
+      ctx.font = 'bold 20px Georgia, serif';
+      ctx.fillStyle = '#f0d89a';
+      ctx.textAlign = 'left';
+      ctx.fillText(bestName, 86, 350);
+
+      ctx.font = '14px Georgia, serif';
+      ctx.fillStyle = '#6ab0e8';
+      ctx.fillText(d.name1+'#'+d.tag1+' : '+best.pts1.toLocaleString('fr-FR')+' pts ('+( best.ratio1*100).toFixed(2)+'%)', 86, 374);
+      ctx.fillStyle = '#e8846a';
+      ctx.fillText(d.name2+'#'+d.tag2+' : '+best.pts2.toLocaleString('fr-FR')+' pts ('+( best.ratio2*100).toFixed(2)+'%)', 86, 394);
+
+      ctx.font = 'bold 22px Georgia, serif';
+      ctx.fillStyle = '#c8a96e';
+      ctx.textAlign = 'right';
+      ctx.fillText((best.champCompat*100).toFixed(1)+'%', W-80, 370);
+      ctx.font = '11px Georgia, serif';
+      ctx.fillStyle = '#7a7568';
+      ctx.fillText('compatibilité', W-80, 388);
+    };
+
+    if (bestChamp) {
+      var img = new Image();
+      img.crossOrigin = 'anonymous';
+      img.onload = function() {
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(W-130, 340, 30, 0, Math.PI*2);
+        ctx.clip();
+        ctx.drawImage(img, W-160, 310, 60, 60);
+        ctx.restore();
+        drawChamp();
+        drawTable(ctx, d, W, H);
+        finishExport(canvas, btn);
+      };
+      img.onerror = function() {
+        drawChamp();
+        drawTable(ctx, d, W, H);
+        finishExport(canvas, btn);
+      };
+      img.src = 'https://ddragon.leagueoflegends.com/cdn/16.4.1/img/champion/' + bestChamp.image.full;
+    } else {
+      drawChamp();
+      drawTable(ctx, d, W, H);
+      finishExport(canvas, btn);
+    }
+  } else {
+    drawTable(ctx, d, W, H);
+    finishExport(canvas, btn);
+  }
+}
+
+function drawTable(ctx, d, W, H) {
+  var startY = 410;
+  var colX = [60, 220, 490, 650, 800];
+
+  // Table header
+  ctx.fillStyle = 'rgba(13,18,32,0.9)';
+  ctx.fillRect(60, startY, W-120, 28);
+  ctx.font = '10px Georgia, serif';
+  ctx.fillStyle = '#7a7568';
+  ctx.textAlign = 'left';
+  ['#  Champion', 'Joueur 1', 'Joueur 2', 'Importance', 'Compat.'].forEach(function(h, i) {
+    ctx.textAlign = i === 0 ? 'left' : 'right';
+    ctx.fillText(h, i === 0 ? colX[0]+8 : colX[i]+70, startY + 18);
+  });
+
+  d.sharedChamps.slice(0, 10).forEach(function(c, i) {
+    var y = startY + 28 + i * 38;
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(10,14,26,0.7)' : 'rgba(13,18,32,0.5)';
+    ctx.fillRect(60, y, W-120, 38);
+
+    var champ = d.champMap[c.id];
+    var name = champ ? champ.name : 'ID ' + c.id;
+
+    ctx.font = '11px Georgia, serif';
+    ctx.fillStyle = '#8b6914';
+    ctx.textAlign = 'left';
+    ctx.fillText((i+1) + '.', colX[0]+8, y+14);
+
+    ctx.fillStyle = '#ccc8b8';
+    ctx.fillText(name, colX[0]+30, y+14);
+
+    ctx.fillStyle = '#6ab0e8';
+    ctx.textAlign = 'right';
+    ctx.fillText(c.pts1.toLocaleString('fr-FR'), colX[1]+70, y+12);
+    ctx.font = '10px Georgia, serif';
+    ctx.fillStyle = '#555';
+    ctx.fillText('('+( c.ratio1*100).toFixed(2)+'%)', colX[1]+70, y+26);
+
+    ctx.font = '11px Georgia, serif';
+    ctx.fillStyle = '#e8846a';
+    ctx.fillText(c.pts2.toLocaleString('fr-FR'), colX[2]+70, y+12);
+    ctx.font = '10px Georgia, serif';
+    ctx.fillStyle = '#555';
+    ctx.fillText('('+(c.ratio2*100).toFixed(2)+'%)', colX[2]+70, y+26);
+
+    ctx.font = '11px Georgia, serif';
+    ctx.fillStyle = '#7a7568';
+    ctx.fillText((c.weight*100).toFixed(2)+'%', colX[3]+70, y+14);
+
+    ctx.fillStyle = '#c8a96e';
+    ctx.font = 'bold 13px Georgia, serif';
+    ctx.fillText((c.champCompat*100).toFixed(1)+'%', colX[4]+40, y+14);
+  });
+
+  // Footer
+  ctx.font = 'italic 11px Georgia, serif';
+  ctx.fillStyle = '#3a3830';
+  ctx.textAlign = 'center';
+  ctx.fillText('summoner-synergy.vercel.app', W/2, H-14);
+}
+
+function roundRect(ctx, x, y, w, h, r, fill, stroke) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+}
+
+function finishExport(canvas, btn) {
+  try {
+    var link = document.createElement('a');
+    link.download = 'summoner-synergy.jpg';
+    link.href = canvas.toDataURL('image/jpeg', 0.92);
+    link.click();
+  } catch(e) {
+    alert('Export impossible : ' + e.message + '\nEssayez depuis un serveur (pas en fichier local).');
+  }
+  btn.disabled = false;
+  btn.innerHTML = '<span class="share-icon">🖼</span> Exporter en image';
 }
 
 document.addEventListener('keydown', function(e) {
