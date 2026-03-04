@@ -743,6 +743,7 @@
             <th>Champion</th>
             <th class="right">Joueur 1</th>
             <th class="right">Joueur 2</th>
+            <th class="right">Importance</th>
             <th class="right">Compatibilité</th>
           </tr>
         </thead>
@@ -860,34 +861,42 @@ function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
   Object.keys(map1).forEach(function(id) { allIds[id] = true; });
   Object.keys(map2).forEach(function(id) { allIds[id] = true; });
 
-  // Pour chaque champion : ratio de chaque joueur, puis min/max des ratios
-  // Compatibilité globale = moyenne des (min_ratio/max_ratio) sur les champions communs
+  // Pour chaque champion commun : compatibilité ratio × pondération par importance
+  // Un champion à 50%/50% pèse bien plus qu'un champion à 0.9%/0.9%
   var sharedChamps = [];
-  var sumCompatScore = 0;
+  var sumWeightedCompat = 0;
+  var sumWeights = 0;
 
   Object.keys(allIds).forEach(function(id) {
     var pts1 = map1[id] || 0;
     var pts2 = map2[id] || 0;
-    if (pts1 === 0 || pts2 === 0) return; // on ne compte que les champions communs
+    if (pts1 === 0 || pts2 === 0) return;
 
-    var ratio1 = total1 > 0 ? pts1 / total1 : 0; // ex: 0.50
+    var ratio1 = total1 > 0 ? pts1 / total1 : 0;
     var ratio2 = total2 > 0 ? pts2 / total2 : 0;
 
     var minRatio = Math.min(ratio1, ratio2);
     var maxRatio = Math.max(ratio1, ratio2);
-    var champCompat = maxRatio > 0 ? minRatio / maxRatio : 0; // 0..1
+    var champCompat = maxRatio > 0 ? minRatio / maxRatio : 0;
 
-    sumCompatScore += champCompat;
+    // Poids = moyenne géométrique des deux ratios
+    // Favorise les champions importants pour LES DEUX joueurs
+    var weight = Math.sqrt(ratio1 * ratio2);
+
+    sumWeightedCompat += champCompat * weight;
+    sumWeights += weight;
+
     sharedChamps.push({
       id: id,
       pts1: pts1, pts2: pts2,
       ratio1: ratio1, ratio2: ratio2,
-      champCompat: champCompat
+      champCompat: champCompat,
+      weight: weight
     });
   });
 
-  // Score global = moyenne des compatibilités par champion commun
-  var compat = sharedChamps.length > 0 ? (sumCompatScore / sharedChamps.length) * 100 : 0;
+  // Moyenne pondérée — les petits champions n'influencent quasi pas le score
+  var compat = sumWeights > 0 ? (sumWeightedCompat / sumWeights) * 100 : 0;
   var compatStr = compat.toFixed(1);
 
   document.getElementById('score-pct').textContent = compatStr + '%';
@@ -902,7 +911,8 @@ function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
   document.getElementById('stat-summin').textContent = total1.toLocaleString('fr-FR') + ' pts';
   document.getElementById('stat-summax').textContent = total2.toLocaleString('fr-FR') + ' pts';
 
-  sharedChamps.sort(function(a, b) { return b.champCompat - a.champCompat; });
+  // Trier par poids (champions les plus joués des deux côtés en premier)
+  sharedChamps.sort(function(a, b) { return b.weight - a.weight; });
 
   var bestCard = document.getElementById('best-champ-card');
   if (sharedChamps.length > 0) {
@@ -939,6 +949,7 @@ function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
       '<td><div class="champ-cell">' + imgHtml + '<span>' + champName + '</span></div></td>' +
       '<td class="right pts-p1">' + c.pts1.toLocaleString('fr-FR') + '<br><em style="font-size:.8em;color:var(--text-dim)">(' + (c.ratio1*100).toFixed(2) + '%)</em></td>' +
       '<td class="right pts-p2">' + c.pts2.toLocaleString('fr-FR') + '<br><em style="font-size:.8em;color:var(--text-dim)">(' + (c.ratio2*100).toFixed(2) + '%)</em></td>' +
+      '<td class="right" style="color:var(--text-dim)">' + (c.weight * 100).toFixed(2) + '%</td>' +
       '<td class="right pts-min">' + (c.champCompat * 100).toFixed(1) + '%</td>';
     tbody.appendChild(tr);
   });
@@ -949,11 +960,11 @@ function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
 }
 
 function getCompatDesc(pct) {
-  if (pct >= 80) return 'Une synergie légendaire — vous jouez les mêmes champions comme si vous ne faisiez qu\'un.';
-  if (pct >= 60) return 'Excellente synergie — vos bibliothèques de champions se recoupent massivement.';
-  if (pct >= 40) return 'Bonne synergie — une base commune solide pour jouer ensemble.';
-  if (pct >= 20) return 'Synergie modérée — quelques champions en commun, mais des styles différents.';
-  return 'Synergie faible — vous explorez des territoires très différents sur la Faille.';
+  if (pct >= 80) return "Une synergie légendaire — vos champions favoris sont les mêmes, quelle que soit votre expérience.";
+  if (pct >= 60) return "Excellente synergie — vous investissez clairement dans les mêmes champions.";
+  if (pct >= 40) return "Bonne synergie — un pool de champions commun solide, même si les styles diffèrent.";
+  if (pct >= 20) return "Synergie modérée — quelques champions clés en commun, mais des priorités différentes.";
+  return "Synergie faible — vos champions favoris respectifs ne se recoupent quasiment pas.";
 }
 
 document.addEventListener('keydown', function(e) {
