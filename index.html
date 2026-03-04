@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Summoner Synergy — Comparateur de Maîtrises</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --gold: #c8a96e;
+    --gold-light: #f0d89a;
+    --gold-dark: #8b6914;
+    --bg-deep: #050810;
+    --bg-card: #0a0e1a;
+    --bg-panel: #0d1220;
+    --border: rgba(200, 169, 110, 0.25);
+    --border-bright: rgba(200, 169, 110, 0.6);
+    --text: #ccc8b8;
+    --text-dim: #7a7568;
+    --blue-accent: #4a90d9;
+    --red-accent: #c0392b;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg-deep);
+    color: var(--text);
+    font-family: 'Crimson Pro', Georgia, serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background pattern */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(200,169,110,0.06) 0%, transparent 60%),
+      repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(200,169,110,0.03) 60px),
+      repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(200,169,110,0.03) 60px);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page-wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 920px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+  }
+
+  /* ── Header ── */
+  header {
+    text-align: center;
+    margin-bottom: 52px;
+    animation: fadeDown 0.8s ease both;
+  }
+
+  .header-crest {
+    width: 56px;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    margin: 0 auto 22px;
+  }
+
+  h1 {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 900;
+    letter-spacing: 0.12em;
+    color: var(--gold-light);
+    text-transform: uppercase;
+    line-height: 1.1;
+    text-shadow: 0 0 40px rgba(200,169,110,0.3);
+  }
+
+  .subtitle {
+    margin-top: 10px;
+    font-size: 1.05rem;
+    font-style: italic;
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 32px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold-dark), var(--gold), var(--gold-dark), transparent);
+  }
+
+  /* ── API Key row ── */
+  .api-row {
+    margin-bottom: 32px;
+    animation: fadeDown 0.9s 0.1s ease both;
+  }
+
+  .api-row label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--gold-dark);
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+
+  .api-row input {
+    width: 100%;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 10px 16px;
+    color: var(--gold-light);
+    font-family: 'Courier New', monospace;
+    font-size: 0.85rem;
+    letter-spacing: 0.05em;
+    transition: border-color 0.2s;
+    outline: none;
+  }
+
+  .api-row input:focus { border-color: var(--gold); }
+
+  /* ── Summoner panels ── */
+  .summoners-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+    animation: fadeDown 0.9s 0.2s ease both;
+  }
+
+  @media (max-width: 580px) {
+    .summoners-grid { grid-template-columns: 1fr; }
+  }
+
+  .summoner-panel {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 22px 24px;
+    position: relative;
+  }
+
+  .summoner-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .summoner-label.p1 { color: #6ab0e8; }
+  .summoner-label.p2 { color: #e8846a; }
+
+  .field-group {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .field-wrap { flex: 1; }
+  .field-wrap.tag { flex: 0 0 90px; }
+
+  .field-wrap label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .field-wrap input {
+    width: 100%;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Crimson Pro', serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+  }
+
+  .field-wrap input:focus {
+    border-color: var(--gold);
+    background: rgba(200,169,110,0.05);
+  }
+
+  /* Region selector */
+  .region-wrap {
+    margin-top: 4px;
+  }
+
+  .region-wrap label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-bottom: 5px;
+  }
+
+  .region-wrap select {
+    width: 100%;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Crimson Pro', serif;
+    font-size: 0.95rem;
+    outline: none;
+    cursor: pointer;
+    appearance: none;
+    transition: border-color 0.2s;
+  }
+
+  .region-wrap select:focus { border-color: var(--gold); }
+  .region-wrap select option { background: #0d1220; }
+
+  /* ── Compare button ── */
+  .btn-compare {
+    display: block;
+    width: 100%;
+    padding: 16px;
+    background: transparent;
+    border: 1px solid var(--gold-dark);
+    border-radius: 3px;
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    transition: border-color 0.3s, color 0.3s;
+    animation: fadeDown 0.9s 0.3s ease both;
+  }
+
+  .btn-compare::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(200,169,110,0.12), rgba(200,169,110,0.04));
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+
+  .btn-compare:hover { border-color: var(--gold); }
+  .btn-compare:hover::before { opacity: 1; }
+  .btn-compare:active { transform: scale(0.995); }
+  .btn-compare:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* ── Status / Error ── */
+  #status-bar {
+    margin-top: 20px;
+    padding: 12px 18px;
+    border-radius: 3px;
+    font-size: 0.9rem;
+    display: none;
+    animation: fadeDown 0.3s ease;
+  }
+
+  #status-bar.loading {
+    display: block;
+    background: rgba(74,144,217,0.1);
+    border: 1px solid rgba(74,144,217,0.3);
+    color: #6ab0e8;
+    font-style: italic;
+  }
+
+  #status-bar.error {
+    display: block;
+    background: rgba(192,57,43,0.1);
+    border: 1px solid rgba(192,57,43,0.35);
+    color: #e87a6a;
+  }
+
+  /* ── Results ── */
+  #results {
+    margin-top: 40px;
+    display: none;
+    animation: fadeUp 0.6s ease both;
+  }
+
+  /* Score circle */
+  .score-section {
+    text-align: center;
+    margin-bottom: 44px;
+  }
+
+  .score-circle-wrap {
+    position: relative;
+    display: inline-block;
+    margin: 24px 0 16px;
+  }
+
+  .score-svg { display: block; }
+
+  .score-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .score-pct {
+    font-family: 'Cinzel', serif;
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: var(--gold-light);
+    line-height: 1;
+    text-shadow: 0 0 30px rgba(200,169,110,0.5);
+  }
+
+  .score-label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+
+  .score-desc {
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--text-dim);
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  /* Stats row */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-bottom: 36px;
+  }
+
+  @media (max-width: 500px) { .stats-grid { grid-template-columns: 1fr; } }
+
+  .stat-box {
+    background: var(--bg-panel);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px 16px;
+    text-align: center;
+  }
+
+  .stat-val {
+    font-family: 'Cinzel', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--gold-light);
+    line-height: 1;
+  }
+
+  .stat-lbl {
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--text-dim);
+    margin-top: 5px;
+  }
+
+  /* Best champion */
+  .best-champ-section {
+    margin-bottom: 36px;
+  }
+
+  .section-title {
+    font-family: 'Cinzel', serif;
+    font-size: 0.68rem;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-dark);
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .best-champ-card {
+    background: var(--bg-panel);
+    border: 1px solid var(--border-bright);
+    border-radius: 4px;
+    padding: 24px;
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .best-champ-card::after {
+    content: '✦';
+    position: absolute;
+    right: 20px; top: 50%;
+    transform: translateY(-50%);
+    font-size: 1.8rem;
+    color: rgba(200,169,110,0.12);
+  }
+
+  .champ-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid var(--gold-dark);
+    object-fit: cover;
+    flex-shrink: 0;
+    box-shadow: 0 0 20px rgba(200,169,110,0.2);
+  }
+
+  .champ-icon-placeholder {
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    border: 2px solid var(--gold-dark);
+    background: rgba(200,169,110,0.08);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.8rem;
+    flex-shrink: 0;
+  }
+
+  .champ-info { flex: 1; }
+
+  .champ-name {
+    font-family: 'Cinzel', serif;
+    font-size: 1.4rem;
+    color: var(--gold-light);
+    margin-bottom: 8px;
+  }
+
+  .champ-pts-row {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+  }
+
+  .champ-pts {
+    font-size: 0.95rem;
+    color: var(--text);
+  }
+
+  .champ-pts span {
+    font-family: 'Cinzel', serif;
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .champ-pts.p1 span { color: #6ab0e8; }
+  .champ-pts.p2 span { color: #e8846a; }
+
+  /* Top champions table */
+  .top-champs-section { }
+
+  .top-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .top-table th {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .top-table th.right { text-align: right; }
+
+  .top-table td {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+    border-bottom: 1px solid rgba(200,169,110,0.06);
+    vertical-align: middle;
+  }
+
+  .top-table tr:hover td { background: rgba(200,169,110,0.04); }
+
+  .top-table .champ-cell {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .mini-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--border);
+    object-fit: cover;
+  }
+
+  .top-table .rank-num {
+    color: var(--gold-dark);
+    font-family: 'Cinzel', serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    width: 28px;
+    text-align: center;
+  }
+
+  .pts-p1 { color: #6ab0e8; font-family: 'Cinzel', serif; }
+  .pts-p2 { color: #e8846a; font-family: 'Cinzel', serif; }
+  .pts-min { color: var(--gold); font-family: 'Cinzel', serif; font-weight: 600; }
+
+  .right { text-align: right; }
+
+  /* Loading animation */
+  .loader {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid rgba(200,169,110,0.2);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-right: 8px;
+    vertical-align: middle;
+  }
+
+  /* Animations */
+  @keyframes fadeDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  /* Progress bar for compatibility */
+  .compat-bar-wrap {
+    height: 4px;
+    background: rgba(200,169,110,0.1);
+    border-radius: 2px;
+    margin: 12px auto 0;
+    max-width: 200px;
+    overflow: hidden;
+  }
+
+  .compat-bar-fill {
+    height: 100%;
+    border-radius: 2px;
+    background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
+    transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+    width: 0;
+  }
+
+  .divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+    margin: 32px 0;
+  }
+</style>
+</head>
+<body>
+<div class="page-wrap">
+
+  <!-- Header -->
+  <header>
+    <div class="header-crest"></div>
+    <h1>Summoner Synergy</h1>
+    <p class="subtitle">Mesurez votre affinité par la maîtrise des champions</p>
+  </header>
+
+  <!-- Form card -->
+  <div class="card">
+    <!-- Summoners -->
+    <div class="summoners-grid">
+      <!-- Joueur 1 -->
+      <div class="summoner-panel">
+        <div class="summoner-label p1">⬡ Joueur 1</div>
+        <div class="field-group">
+          <div class="field-wrap">
+            <label>Game Name</label>
+            <input type="text" id="name1" placeholder="Faker" />
+          </div>
+          <div class="field-wrap tag">
+            <label>Tag</label>
+            <input type="text" id="tag1" placeholder="KR1" />
+          </div>
+        </div>
+        <div class="region-wrap">
+          <label>Région</label>
+          <select id="region1">
+            <option value="euw1">EUW</option>
+            <option value="eun1">EUNE</option>
+            <option value="na1">NA</option>
+            <option value="kr">KR</option>
+            <option value="br1">BR</option>
+            <option value="la1">LAN</option>
+            <option value="la2">LAS</option>
+            <option value="oc1">OCE</option>
+            <option value="tr1">TR</option>
+            <option value="ru">RU</option>
+            <option value="jp1">JP</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Joueur 2 -->
+      <div class="summoner-panel">
+        <div class="summoner-label p2">⬡ Joueur 2</div>
+        <div class="field-group">
+          <div class="field-wrap">
+            <label>Game Name</label>
+            <input type="text" id="name2" placeholder="T1" />
+          </div>
+          <div class="field-wrap tag">
+            <label>Tag</label>
+            <input type="text" id="tag2" placeholder="KR2" />
+          </div>
+        </div>
+        <div class="region-wrap">
+          <label>Région</label>
+          <select id="region2">
+            <option value="euw1">EUW</option>
+            <option value="eun1">EUNE</option>
+            <option value="na1">NA</option>
+            <option value="kr">KR</option>
+            <option value="br1">BR</option>
+            <option value="la1">LAN</option>
+            <option value="la2">LAS</option>
+            <option value="oc1">OCE</option>
+            <option value="tr1">TR</option>
+            <option value="ru">RU</option>
+            <option value="jp1">JP</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Button -->
+    <button class="btn-compare" id="compareBtn" onclick="startCompare()">
+      Analyser la Synergie
+    </button>
+
+    <!-- Status -->
+    <div id="status-bar"></div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+    <div class="divider"></div>
+
+    <!-- Score -->
+    <div class="score-section card">
+      <div class="section-title">Indice de Compatibilité</div>
+      <div class="score-circle-wrap">
+        <svg class="score-svg" width="180" height="180" viewBox="0 0 180 180">
+          <circle cx="90" cy="90" r="76" fill="none" stroke="rgba(200,169,110,0.08)" stroke-width="8"/>
+          <circle id="score-arc" cx="90" cy="90" r="76" fill="none"
+            stroke="url(#goldGrad)" stroke-width="8"
+            stroke-linecap="round"
+            stroke-dasharray="477.52" stroke-dashoffset="477.52"
+            transform="rotate(-90 90 90)"
+            style="transition: stroke-dashoffset 1.4s cubic-bezier(0.22,1,0.36,1)"/>
+          <defs>
+            <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="#8b6914"/>
+              <stop offset="100%" stop-color="#f0d89a"/>
+            </linearGradient>
+          </defs>
+        </svg>
+        <div class="score-text">
+          <div class="score-pct" id="score-pct">—</div>
+          <div class="score-label">Synergie</div>
+        </div>
+      </div>
+      <p class="score-desc" id="score-desc"></p>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-box">
+        <div class="stat-val" id="stat-champions">—</div>
+        <div class="stat-lbl">Champions en commun</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-summin" style="color:#c8a96e">—</div>
+        <div class="stat-lbl">Σ minimum (points partagés)</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-val" id="stat-summax">—</div>
+        <div class="stat-lbl">Σ maximum (potentiel total)</div>
+      </div>
+    </div>
+
+    <!-- Best champ -->
+    <div class="best-champ-section card">
+      <div class="section-title">Champion en commun le plus fort</div>
+      <div class="best-champ-card" id="best-champ-card">
+        <!-- rempli dynamiquement -->
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Top table -->
+    <div class="top-champs-section card">
+      <div class="section-title">Top 10 champions par synergie</div>
+      <table class="top-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Champion</th>
+            <th class="right">Joueur 1</th>
+            <th class="right">Joueur 2</th>
+            <th class="right">Min (synergie)</th>
+          </tr>
+        </thead>
+        <tbody id="top-table-body">
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+var DDRAGON_BASE = 'https://ddragon.leagueoflegends.com/cdn/16.4.1';
+
+function setStatus(msg, type) {
+  var el = document.getElementById('status-bar');
+  el.className = type;
+  el.style.display = 'block';
+  el.innerHTML = type === 'loading'
+    ? '<span class="loader"></span>' + msg
+    : msg;
+}
+
+function clearStatus() {
+  document.getElementById('status-bar').style.display = 'none';
+}
+
+function apiFetch(endpoint) {
+  return fetch(endpoint).then(function(r) {
+    return r.json().then(function(data) {
+      if (!r.ok) {
+        var msg = (data && data.status && data.status.message) ? data.status.message
+                : (data && data.error) ? data.error
+                : 'Erreur ' + r.status;
+        if (r.status === 403) throw new Error('Clé API invalide ou expirée (403). Vérifiez la variable RIOT_API_KEY sur Vercel.');
+        if (r.status === 404) throw new Error('Introuvable (404) : ' + msg + '. Vérifiez nom/tag/région.');
+        if (r.status === 429) throw new Error('Trop de requêtes (429). Patientez quelques secondes.');
+        throw new Error(msg);
+      }
+      return data;
+    });
+  });
+}
+
+function getChampionData() {
+  return apiFetch('/api/champions').then(function(d) {
+    var map = {};
+    Object.values(d.data).forEach(function(c) { map[c.key] = c; });
+    return map;
+  });
+}
+
+function getAccount(gameName, tagLine, region) {
+  return apiFetch('/api/account?gameName=' + encodeURIComponent(gameName) +
+    '&tagLine=' + encodeURIComponent(tagLine) +
+    '&region=' + encodeURIComponent(region));
+}
+
+function getMasteries(puuid, region) {
+  return apiFetch('/api/masteries?puuid=' + encodeURIComponent(puuid) +
+    '&region=' + encodeURIComponent(region));
+}
+
+function startCompare() {
+  var name1   = document.getElementById('name1').value.trim();
+  var tag1    = document.getElementById('tag1').value.trim();
+  var name2   = document.getElementById('name2').value.trim();
+  var tag2    = document.getElementById('tag2').value.trim();
+  var region1 = document.getElementById('region1').value;
+  var region2 = document.getElementById('region2').value;
+
+  if (!name1 || !tag1 || !name2 || !tag2) {
+    setStatus('Veuillez remplir tous les champs.', 'error');
+    return;
+  }
+
+  var btn = document.getElementById('compareBtn');
+  btn.disabled = true;
+  document.getElementById('results').style.display = 'none';
+
+  setStatus('Chargement des données champions…', 'loading');
+
+  getChampionData().then(function(champMap) {
+    setStatus('Récupération compte Joueur 1 (' + name1 + '#' + tag1 + ')…', 'loading');
+    return getAccount(name1, tag1, region1).then(function(a1) {
+      setStatus('Maîtrises Joueur 1…', 'loading');
+      return getMasteries(a1.puuid, region1).then(function(m1) {
+        setStatus('Récupération compte Joueur 2 (' + name2 + '#' + tag2 + ')…', 'loading');
+        return getAccount(name2, tag2, region2).then(function(a2) {
+          setStatus('Maîtrises Joueur 2…', 'loading');
+          return getMasteries(a2.puuid, region2).then(function(m2) {
+            renderResults(name1, tag1, m1, name2, tag2, m2, champMap);
+          });
+        });
+      });
+    });
+  }).catch(function(err) {
+    console.error(err);
+    setStatus('Erreur : ' + err.message, 'error');
+  }).then(function() {
+    btn.disabled = false;
+  });
+}
+
+function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
+  var map1 = {}, map2 = {};
+  m1.forEach(function(m) { map1[m.championId] = m.championPoints; });
+  m2.forEach(function(m) { map2[m.championId] = m.championPoints; });
+
+  var allIds = {};
+  Object.keys(map1).forEach(function(id) { allIds[id] = true; });
+  Object.keys(map2).forEach(function(id) { allIds[id] = true; });
+
+  var sumMin = 0, sumMax = 0;
+  var sharedChamps = [];
+
+  Object.keys(allIds).forEach(function(id) {
+    var pts1 = map1[id] || 0;
+    var pts2 = map2[id] || 0;
+    sumMin += Math.min(pts1, pts2);
+    sumMax += Math.max(pts1, pts2);
+    if (pts1 > 0 && pts2 > 0) {
+      sharedChamps.push({ id: id, pts1: pts1, pts2: pts2, mn: Math.min(pts1, pts2) });
+    }
+  });
+
+  var compat = sumMax > 0 ? (sumMin / sumMax) * 100 : 0;
+  var compatStr = compat.toFixed(1);
+
+  document.getElementById('score-pct').textContent = compatStr + '%';
+  document.getElementById('score-desc').textContent = getCompatDesc(compat);
+  var offset = 477.52 - (compat / 100) * 477.52;
+  setTimeout(function() {
+    document.getElementById('score-arc').style.strokeDashoffset = offset;
+  }, 100);
+
+  document.getElementById('stat-champions').textContent = sharedChamps.length;
+  document.getElementById('stat-summin').textContent = sumMin.toLocaleString('fr-FR');
+  document.getElementById('stat-summax').textContent = sumMax.toLocaleString('fr-FR');
+
+  sharedChamps.sort(function(a, b) { return b.mn - a.mn; });
+
+  var bestCard = document.getElementById('best-champ-card');
+  if (sharedChamps.length > 0) {
+    var best = sharedChamps[0];
+    var champ = champMap[best.id];
+    var champName = champ ? champ.name : 'Champion #' + best.id;
+    var imgHtml = champ
+      ? '<img class="champ-icon" src="' + DDRAGON_BASE + '/img/champion/' + champ.image.full + '" alt="' + champName + '" onerror="this.style.display=\'none\'">'
+      : '<div class="champ-icon-placeholder">?</div>';
+    bestCard.innerHTML = imgHtml +
+      '<div class="champ-info">' +
+        '<div class="champ-name">' + champName + '</div>' +
+        '<div class="champ-pts-row">' +
+          '<div class="champ-pts p1">' + name1 + '#' + tag1 + ' : <span>' + best.pts1.toLocaleString('fr-FR') + '</span> pts</div>' +
+          '<div class="champ-pts p2">' + name2 + '#' + tag2 + ' : <span>' + best.pts2.toLocaleString('fr-FR') + '</span> pts</div>' +
+        '</div>' +
+        '<div style="margin-top:8px;font-size:.85rem;color:var(--text-dim);font-style:italic;">Synergie commune : <strong style="color:var(--gold)">' + best.mn.toLocaleString('fr-FR') + '</strong> points</div>' +
+      '</div>';
+  } else {
+    bestCard.innerHTML = '<div style="color:var(--text-dim);font-style:italic;">Aucun champion joué en commun.</div>';
+  }
+
+  var tbody = document.getElementById('top-table-body');
+  tbody.innerHTML = '';
+  sharedChamps.slice(0, 10).forEach(function(c, i) {
+    var champ = champMap[c.id];
+    var champName = champ ? champ.name : 'ID ' + c.id;
+    var imgHtml = champ
+      ? '<img class="mini-icon" src="' + DDRAGON_BASE + '/img/champion/' + champ.image.full + '" alt="' + champName + '" onerror="this.style.display=\'none\'">'
+      : '';
+    var tr = document.createElement('tr');
+    tr.innerHTML =
+      '<td><span class="rank-num">' + (i + 1) + '</span></td>' +
+      '<td><div class="champ-cell">' + imgHtml + '<span>' + champName + '</span></div></td>' +
+      '<td class="right pts-p1">' + c.pts1.toLocaleString('fr-FR') + '</td>' +
+      '<td class="right pts-p2">' + c.pts2.toLocaleString('fr-FR') + '</td>' +
+      '<td class="right pts-min">' + c.mn.toLocaleString('fr-FR') + '</td>';
+    tbody.appendChild(tr);
+  });
+
+  clearStatus();
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function getCompatDesc(pct) {
+  if (pct >= 80) return 'Une synergie légendaire — vous jouez les mêmes champions comme si vous ne faisiez qu\'un.';
+  if (pct >= 60) return 'Excellente synergie — vos bibliothèques de champions se recoupent massivement.';
+  if (pct >= 40) return 'Bonne synergie — une base commune solide pour jouer ensemble.';
+  if (pct >= 20) return 'Synergie modérée — quelques champions en commun, mais des styles différents.';
+  return 'Synergie faible — vous explorez des territoires très différents sur la Faille.';
+}
+
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') startCompare();
+});
+</script>
+</body>
+</html>
