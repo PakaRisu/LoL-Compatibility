@@ -32,6 +32,7 @@
     font-family: 'Crimson Pro', Georgia, serif;
     min-height: 100vh;
     overflow-x: hidden;
+    zoom: 1.25;
   }
 
   /* Background pattern */
@@ -1282,12 +1283,6 @@ function applyLang() {
   // Re-render score description if results visible
   if (d) {
     document.getElementById('score-desc').textContent = getCompatDesc(d.compat);
-    // Re-render best champ "shared" label
-    var bsLabel = document.querySelector('#best-champ-card .champ-info div:last-child');
-    if (bsLabel) {
-      var best = d.sharedChamps[0];
-      if (best) bsLabel.innerHTML = t('bestShared')+' <strong style="color:var(--gold)">'+(best.champCompat*100).toFixed(1)+'%</strong>';
-    }
     // Re-render table header player names
     document.getElementById('th-p1').textContent = name1;
     document.getElementById('th-p2').textContent = name2;
@@ -1576,111 +1571,122 @@ function exportJPG() {
   tg.addColorStop(0,'transparent'); tg.addColorStop(0.5,'#c8a96e'); tg.addColorStop(1,'transparent');
   ctx.fillStyle=tg; ctx.fillRect(0,0,W,2);
 
-  // Title
+  // Title (scaled ×1.25)
   ctx.textAlign='center'; ctx.fillStyle='#f0d89a';
-  ctx.font='bold 24px Georgia,serif';
-  ctx.fillText(t('jpgTitle'),W/2,40);
-  goldDivider(52);
+  ctx.font='bold 30px Georgia,serif';
+  ctx.fillText(t('jpgTitle'),W/2,44);
+  goldDivider(58);
 
   // After icons load, draw everything
   function drawAll(img1,img2) {
-    // Profile icons
+    // Scale factor: all font sizes × 1.25
+    var S = 1.25;
+    function fs(size) { return Math.round(size*S)+'px Georgia,serif'; }
+
     function drawCircleIcon(img, cx, cy, r) {
       if (!img) return;
       ctx.save();
-      ctx.beginPath();
-      ctx.arc(cx,cy,r,0,Math.PI*2);
-      ctx.clip();
+      ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.clip();
       ctx.drawImage(img,cx-r,cy-r,r*2,r*2);
       ctx.restore();
-      // border
       ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2);
       ctx.strokeStyle='rgba(200,169,110,0.5)'; ctx.lineWidth=2; ctx.stroke();
     }
 
+    // Profile icons + player names
     var iconR=22;
     drawCircleIcon(img1, 80, 82, iconR);
     drawCircleIcon(img2, W-80, 82, iconR);
 
-    // Player names
-    ctx.font='bold 16px Georgia,serif';
+    ctx.font='bold '+fs(16);
     ctx.fillStyle='#6ab0e8'; ctx.textAlign='left';
-    ctx.fillText(d.name1+'#'+d.tag1, 110, 86);
+    ctx.fillText(d.name1+'#'+d.tag1, 110, 88);
     ctx.fillStyle='#7a7568'; ctx.textAlign='center';
-    ctx.fillText('vs',W/2,86);
+    ctx.fillText('vs', W/2, 88);
     ctx.fillStyle='#e8846a'; ctx.textAlign='right';
-    ctx.fillText(d.name2+'#'+d.tag2, W-110, 86);
+    ctx.fillText(d.name2+'#'+d.tag2, W-110, 88);
 
-    goldDivider(102);
+    goldDivider(104);
 
     // Big score
     ctx.textAlign='center';
-    ctx.font='bold 60px Georgia,serif';
+    ctx.font='bold '+fs(60);
     ctx.fillStyle='#f0d89a';
     ctx.shadowColor='rgba(200,169,110,0.3)'; ctx.shadowBlur=16;
-    ctx.fillText(d.compatStr+'%',W/2,168);
+    ctx.fillText(d.compatStr+'%', W/2, 176);
     ctx.shadowBlur=0;
-    ctx.font='italic 13px Georgia,serif'; ctx.fillStyle='#7a7568';
-    ctx.fillText(t('jpgSubCompat'),W/2,188);
-    ctx.font='italic 12px Georgia,serif'; ctx.fillStyle='#aaa8a0';
-    ctx.fillText(getCompatDesc(d.compat),W/2,208);
+    ctx.font='italic '+fs(13); ctx.fillStyle='#7a7568';
+    ctx.fillText(t('jpgSubCompat'), W/2, 198);
+    ctx.font='italic '+fs(12); ctx.fillStyle='#aaa8a0';
+    ctx.fillText(getCompatDesc(d.compat), W/2, 218);
 
-    goldDivider(220);
+    goldDivider(232);
 
     // Best champ section
     var best=top10[0];
     if (best) {
       var bChamp=d.champMap[best.id];
       var bName=bChamp?bChamp.name:'ID '+best.id;
-      ctx.font='9px Georgia,serif'; ctx.fillStyle='#8b6914'; ctx.textAlign='left';
-      ctx.fillText(t('jpgBestLabel'),44,242);
+      // Label row
+      ctx.font=fs(9); ctx.fillStyle='#8b6914'; ctx.textAlign='left';
+      ctx.fillText(t('jpgBestLabel'), 44, 252);
 
       function finishBest() {
-        ctx.font='bold 17px Georgia,serif'; ctx.fillStyle='#f0d89a'; ctx.textAlign='left';
-        ctx.fillText(bName,44,268);
-        ctx.font='12px Georgia,serif'; ctx.fillStyle='#6ab0e8';
-        ctx.fillText(d.name1+'#'+d.tag1+' : '+fmtPts(best.pts1)+' pts ('+( best.ratio1*100).toFixed(2)+'%)',44,288);
+        // Champion icon on the LEFT (44,276 center)
+        // Text starts after icon (44+36+10 = 90)
+        var textX = 90;
+        ctx.font='bold '+fs(17); ctx.fillStyle='#f0d89a'; ctx.textAlign='left';
+        ctx.fillText(bName, textX, 274);
+        ctx.font=fs(12); ctx.fillStyle='#6ab0e8';
+        ctx.fillText(d.name1+'#'+d.tag1+' : '+fmtPts(best.pts1)+' pts ('+( best.ratio1*100).toFixed(2)+'%)', textX, 294);
         ctx.fillStyle='#e8846a';
-        ctx.fillText(d.name2+'#'+d.tag2+' : '+fmtPts(best.pts2)+' pts ('+( best.ratio2*100).toFixed(2)+'%)',44,306);
-        ctx.font='bold 26px Georgia,serif'; ctx.fillStyle='#c8a96e'; ctx.textAlign='right';
-        ctx.fillText((best.champCompat*100).toFixed(1)+'%',W-44,278);
-        ctx.font='10px Georgia,serif'; ctx.fillStyle='#7a7568';
-        ctx.fillText(t('jpgCompatLabel'),W-44,294);
-        goldDivider(320);
+        ctx.fillText(d.name2+'#'+d.tag2+' : '+fmtPts(best.pts2)+' pts ('+( best.ratio2*100).toFixed(2)+'%)', textX, 312);
+        // Compat badge on the RIGHT
+        ctx.font='bold '+fs(26); ctx.fillStyle='#c8a96e'; ctx.textAlign='right';
+        ctx.fillText((best.champCompat*100).toFixed(1)+'%', W-44, 284);
+        ctx.font=fs(10); ctx.fillStyle='#7a7568';
+        ctx.fillText(t('jpgCompatLabel'), W-44, 300);
+        goldDivider(328);
         drawTableRows();
       }
 
       if (bChamp) {
         var ci=new Image(); ci.crossOrigin='anonymous';
-        ci.onload=function(){ drawCircleIcon(ci,W-100,278,28); finishBest(); };
+        ci.onload=function(){
+          // Icon on the LEFT at x=44
+          drawCircleIcon(ci, 62, 283, 26);
+          finishBest();
+        };
         ci.onerror=finishBest;
         ci.src=DDRAGON_BASE+'/img/champion/'+bChamp.image.full;
       } else { finishBest(); }
     } else {
-      goldDivider(320);
+      goldDivider(328);
       drawTableRows();
     }
   }
 
   function drawTableRows() {
-    // Fixed column x positions and widths
+    // Fixed column x positions and widths (scaled for 125%)
+    var S=1.25;
+    function fs(n){ return Math.round(n*S)+'px Georgia,serif'; }
     var C=[
       {x:8,  w:28,  a:'right'},   // rank
       {x:44, w:195, a:'left'},    // champion
-      {x:248,w:145, a:'right'},   // p1
-      {x:402,w:145, a:'right'},   // p2
-      {x:556,w:90,  a:'right'},   // importance
-      {x:654,w:86,  a:'right'}    // compat
+      {x:248,w:155, a:'right'},   // p1
+      {x:412,w:155, a:'right'},   // p2
+      {x:576,w:86,  a:'right'},   // importance
+      {x:670,w:82,  a:'right'}    // compat
     ];
     var headers=['#','Champion',d.name1,d.name2,'Importance','Compat.'];
     var TY=HEADER_H;
 
     // Table header
     ctx.fillStyle='rgba(13,18,32,0.95)'; ctx.fillRect(0,TY,W,TH_H);
-    ctx.font='9px Georgia,serif'; ctx.fillStyle='#7a7568';
+    ctx.font=fs(9); ctx.fillStyle='#7a7568';
     headers.forEach(function(h,i){
       ctx.textAlign=C[i].a;
-      ctx.fillText(h, C[i].a==='right'?C[i].x+C[i].w:C[i].x, TY+19);
+      ctx.fillText(h, C[i].a==='right'?C[i].x+C[i].w:C[i].x, TY+20);
     });
 
     // Rows
@@ -1692,29 +1698,29 @@ function exportJPG() {
       var champ=d.champMap[c.id];
       var cName=champ?champ.name:'ID '+c.id;
 
-      ctx.font='10px Georgia,serif'; ctx.fillStyle='#8b6914'; ctx.textAlign='right';
-      ctx.fillText((i+1)+'.',C[0].x+C[0].w,ry+22);
+      ctx.font=fs(10); ctx.fillStyle='#8b6914'; ctx.textAlign='right';
+      ctx.fillText((i+1)+'.',C[0].x+C[0].w,ry+23);
 
       ctx.fillStyle='#ccc8b8'; ctx.textAlign='left';
-      ctx.fillText(cName, C[1].x+36, ry+22);
+      ctx.fillText(cName, C[1].x+36, ry+23);
 
-      ctx.font='11px Georgia,serif'; ctx.fillStyle='#6ab0e8'; ctx.textAlign='right';
-      ctx.fillText(fmtPts(c.pts1), C[2].x+C[2].w, ry+15);
-      ctx.font='9px Georgia,serif'; ctx.fillStyle='#555';
-      ctx.fillText('('+( c.ratio1*100).toFixed(2)+'%)', C[2].x+C[2].w, ry+27);
+      ctx.font=fs(11); ctx.fillStyle='#6ab0e8'; ctx.textAlign='right';
+      ctx.fillText(fmtPts(c.pts1), C[2].x+C[2].w, ry+16);
+      ctx.font=fs(9); ctx.fillStyle='#555';
+      ctx.fillText('('+( c.ratio1*100).toFixed(2)+'%)', C[2].x+C[2].w, ry+28);
 
-      ctx.font='11px Georgia,serif'; ctx.fillStyle='#e8846a'; ctx.textAlign='right';
-      ctx.fillText(fmtPts(c.pts2), C[3].x+C[3].w, ry+15);
-      ctx.font='9px Georgia,serif'; ctx.fillStyle='#555';
-      ctx.fillText('('+( c.ratio2*100).toFixed(2)+'%)', C[3].x+C[3].w, ry+27);
+      ctx.font=fs(11); ctx.fillStyle='#e8846a'; ctx.textAlign='right';
+      ctx.fillText(fmtPts(c.pts2), C[3].x+C[3].w, ry+16);
+      ctx.font=fs(9); ctx.fillStyle='#555';
+      ctx.fillText('('+( c.ratio2*100).toFixed(2)+'%)', C[3].x+C[3].w, ry+28);
 
-      ctx.font='11px Georgia,serif'; ctx.fillStyle='#7a7568'; ctx.textAlign='right';
-      ctx.fillText((c.weight*100).toFixed(2)+'%', C[4].x+C[4].w, ry+22);
+      ctx.font=fs(11); ctx.fillStyle='#7a7568'; ctx.textAlign='right';
+      ctx.fillText((c.weight*100).toFixed(2)+'%', C[4].x+C[4].w, ry+23);
 
-      ctx.font='bold 13px Georgia,serif'; ctx.fillStyle='#c8a96e'; ctx.textAlign='right';
-      ctx.fillText((c.champCompat*100).toFixed(1)+'%', C[5].x+C[5].w, ry+22);
+      ctx.font='bold '+fs(13); ctx.fillStyle='#c8a96e'; ctx.textAlign='right';
+      ctx.fillText((c.champCompat*100).toFixed(1)+'%', C[5].x+C[5].w, ry+23);
 
-      // Draw champ icon (async, best-effort)
+      // Champion mini-icon
       if (champ) {
         (function(ch,ry2){
           var mi=new Image(); mi.crossOrigin='anonymous';
@@ -1730,8 +1736,8 @@ function exportJPG() {
     });
 
     // Footer
-    ctx.font='italic 9px Georgia,serif'; ctx.fillStyle='#3a3830'; ctx.textAlign='center';
-    ctx.fillText(t('jpgFooter'), W/2, TY+TH_H+(top10.length*ROW_H)+22);
+    ctx.font='italic '+fs(9); ctx.fillStyle='#3a3830'; ctx.textAlign='center';
+    ctx.fillText(t('jpgFooter'), W/2, TY+TH_H+(top10.length*ROW_H)+24);
 
     // Trigger download after a short delay (allow async icons to render)
     setTimeout(function(){ finishExport(canvas,btn); }, 400);
