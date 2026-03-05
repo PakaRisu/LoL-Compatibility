@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Summoner Synergy — Comparateur de Maîtrises</title>
+<title>Summoner Compatibility</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;900&family=Crimson+Pro:ital,wght@0,300;0,400;1,300&display=swap" rel="stylesheet" />
 <style>
   :root {
@@ -679,6 +679,174 @@
     padding: 12px 16px;
     text-align: center;
   }
+
+  /* ── Player icons ── */
+  .summoner-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    object-fit: cover;
+    display: block;
+    margin: 0 auto 8px;
+    background: rgba(200,169,110,0.08);
+  }
+
+  /* ── Options modal ── */
+  .modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 100;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    border-radius: 6px;
+    width: min(520px, 92vw);
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 32px 36px;
+    position: relative;
+    animation: fadeDown 0.25s ease;
+  }
+
+  .modal-title {
+    font-family: 'Cinzel', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--gold-light);
+    margin-bottom: 28px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .modal-close {
+    position: absolute;
+    top: 16px; right: 20px;
+    background: none;
+    border: none;
+    color: var(--text-dim);
+    font-size: 1.4rem;
+    cursor: pointer;
+    line-height: 1;
+    transition: color 0.2s;
+  }
+  .modal-close:hover { color: var(--gold); }
+
+  .modal-tab-bar {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0;
+  }
+
+  .modal-tab {
+    padding: 8px 16px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    margin-bottom: -1px;
+    transition: color 0.2s, border-color 0.2s;
+  }
+  .modal-tab.active {
+    color: var(--gold-light);
+    border-bottom-color: var(--gold);
+  }
+
+  .modal-panel { display: none; }
+  .modal-panel.active { display: block; }
+
+  .lang-options {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .lang-btn {
+    padding: 10px 22px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    color: var(--text);
+    font-family: 'Cinzel', serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .lang-btn.active, .lang-btn:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+  }
+
+  .legal-text {
+    font-size: 0.82rem;
+    font-style: italic;
+    color: var(--text-dim);
+    line-height: 1.7;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 16px 18px;
+  }
+
+  .contact-row { margin-top: 16px; }
+  .contact-row label {
+    display: block;
+    font-family: 'Cinzel', serif;
+    font-size: 0.62rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    margin-bottom: 6px;
+  }
+  .contact-row input {
+    width: 100%;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: 'Crimson Pro', serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .contact-row input:focus { border-color: var(--gold); }
+
+  /* Options button in header */
+  .btn-options {
+    position: absolute;
+    top: 0; right: 0;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 8px 14px;
+    color: var(--text-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .btn-options:hover { border-color: var(--gold-dark); color: var(--gold); }
+
+  header { position: relative; }
+
 </style>
 </head>
 <body>
@@ -687,8 +855,9 @@
   <!-- Header -->
   <header>
     <div class="header-crest"></div>
-    <h1>Summoner Synergy</h1>
-    <p class="subtitle">Mesurez votre affinité par la maîtrise des champions</p>
+    <h1>Summoner Compatibility</h1>
+    <button class="btn-options" onclick="openModal()">⚙ Options</button>
+    <p class="subtitle" id="subtitle-text">Mesurez votre affinité par la maîtrise des champions</p>
   </header>
 
   <!-- Form card -->
@@ -697,7 +866,8 @@
     <div class="summoners-grid">
       <!-- Joueur 1 -->
       <div class="summoner-panel">
-        <div class="summoner-label p1">⬡ Joueur 1</div>
+        <div class="summoner-label p1" id="label-p1">⬡ Invocateur 1</div>
+        <img class="summoner-icon" id="icon1" src="" alt="" style="display:none">
         <div class="field-group">
           <div class="field-wrap">
             <label>Game Name</label>
@@ -728,7 +898,8 @@
 
       <!-- Joueur 2 -->
       <div class="summoner-panel">
-        <div class="summoner-label p2">⬡ Joueur 2</div>
+        <div class="summoner-label p2" id="label-p2">⬡ Invocateur 2</div>
+        <img class="summoner-icon" id="icon2" src="" alt="" style="display:none">
         <div class="field-group">
           <div class="field-wrap">
             <label>Game Name</label>
@@ -792,7 +963,7 @@
         </svg>
         <div class="score-text">
           <div class="score-pct" id="score-pct">—</div>
-          <div class="score-label">Synergie</div>
+          <div class="score-label" id="score-label-text">Compatibilité</div>
         </div>
       </div>
       <p class="score-desc" id="score-desc"></p>
@@ -804,21 +975,21 @@
     <div class="stats-grid">
       <div class="stat-box">
         <div class="stat-val" id="stat-champions">—</div>
-        <div class="stat-lbl">Champions en commun</div>
+        <div class="stat-lbl" id="stat-lbl-champs">Champions en commun</div>
       </div>
       <div class="stat-box">
         <div class="stat-val" id="stat-summin" style="color:#6ab0e8">—</div>
-        <div class="stat-lbl">Total pts Joueur 1</div>
+        <div class="stat-lbl" id="stat-lbl-p1">Total pts Invocateur 1</div>
       </div>
       <div class="stat-box">
         <div class="stat-val" id="stat-summax" style="color:#e8846a">—</div>
-        <div class="stat-lbl">Total pts Joueur 2</div>
+        <div class="stat-lbl" id="stat-lbl-p2">Total pts Invocateur 2</div>
       </div>
     </div>
 
     <!-- Best champ -->
     <div class="best-champ-section card">
-      <div class="section-title">Champion en commun le plus fort</div>
+      <div class="section-title" id="best-champ-title">Champion en commun le plus compatible</div>
       <div class="best-champ-card" id="best-champ-card">
         <!-- rempli dynamiquement -->
       </div>
@@ -828,16 +999,16 @@
 
     <!-- Top table -->
     <div class="top-champs-section card">
-      <div class="section-title">Top 10 champions par synergie</div>
+      <div class="section-title" id="top10-title">Top 10 champions par compatibilité</div>
       <table class="top-table">
         <thead>
           <tr>
             <th>#</th>
-            <th>Champion</th>
-            <th class="right">Joueur 1</th>
-            <th class="right">Joueur 2</th>
-            <th class="right">Importance</th>
-            <th class="right">Compatibilité</th>
+            <th id="th-champ">Champion</th>
+            <th class="right" id="th-p1">Inv. 1</th>
+            <th class="right" id="th-p2">Inv. 2</th>
+            <th class="right" id="th-importance">Importance</th>
+            <th class="right" id="th-compat">Compatibilité</th>
           </tr>
         </thead>
         <tbody id="top-table-body">
@@ -849,7 +1020,7 @@
 
     <!-- Share section -->
     <div class="share-section card" id="share-section">
-      <div class="section-title">Partager les résultats</div>
+      <div class="section-title" id="share-title-text">Partager les résultats</div>
       <div class="share-buttons">
         <button class="btn-share" id="btn-copy" onclick="copyText()">
           <span class="share-icon">📋</span> Copier le texte
@@ -865,31 +1036,29 @@
 
     <!-- Formulas explanation -->
     <div class="formula-section card">
-      <div class="section-title">Comment le score est calculé</div>
+      <div class="section-title" id="formula-title-text">Comment le score est calculé</div>
       <div class="formula-content">
         <div class="formula-block">
-          <div class="formula-label">1. Ratio d'un champion pour un joueur</div>
-          <div class="formula-eq">ratio = points_champion ÷ points_total_joueur</div>
-          <div class="formula-note">Exemple : 100 000 pts sur Ahri, 200 000 pts au total → ratio = 50%</div>
+          <div class="formula-label" id="f1label">1. Ratio d'un champion pour un joueur</div>
+          <div class="formula-eq" id="f1eq">ratio = points_champion ÷ points_total_joueur</div>
+          <div class="formula-note" id="f1note">Exemple : 100 000 pts sur Ahri, 200 000 pts au total → ratio = 50%</div>
         </div>
         <div class="formula-block">
-          <div class="formula-label">2. Compatibilité par champion</div>
-          <div class="formula-eq">compat = min(ratio₁, ratio₂) ÷ max(ratio₁, ratio₂)</div>
-          <div class="formula-note">Deux joueurs à 50% et 50% → 100% · Deux joueurs à 10% et 50% → 20%</div>
+          <div class="formula-label" id="f2label">2. Compatibilité par champion</div>
+          <div class="formula-eq" id="f2eq">compat = min(ratio₁, ratio₂) ÷ max(ratio₁, ratio₂)</div>
+          <div class="formula-note" id="f2note">Deux joueurs à 50% et 50% → 100% · Deux joueurs à 10% et 50% → 20%</div>
         </div>
         <div class="formula-block">
-          <div class="formula-label">3. Poids d'un champion (moyenne géométrique)</div>
-          <div class="formula-eq">poids = √(ratio₁ × ratio₂)</div>
-          <div class="formula-note">Un champion important pour les deux joueurs pèse plus. Un champion à 0.5% chez l'un pèse quasi zéro même s'il est à 30% chez l'autre.</div>
+          <div class="formula-label" id="f3label">3. Poids d'un champion (moyenne géométrique)</div>
+          <div class="formula-eq" id="f3eq">poids = √(ratio₁ × ratio₂)</div>
+          <div class="formula-note" id="f3note">Un champion important pour les deux joueurs pèse plus. Un champion à 0.5% chez l'un pèse quasi zéro même s'il est à 30% chez l'autre.</div>
         </div>
         <div class="formula-block">
-          <div class="formula-label">4. Score final (moyenne pondérée)</div>
-          <div class="formula-eq">score = Σ(compat × poids) ÷ Σ(poids)</div>
-          <div class="formula-note">Les champions peu joués par l'un ou l'autre n'influencent quasiment pas le résultat final — ce sont vos vrais champions favoris qui comptent.</div>
+          <div class="formula-label" id="f4label">4. Score final (moyenne pondérée)</div>
+          <div class="formula-eq" id="f4eq">score = Σ(compat × poids) ÷ Σ(poids)</div>
+          <div class="formula-note" id="f4note">Les champions peu joués n'influencent quasiment pas le résultat — seuls vos vrais favoris comptent.</div>
         </div>
-        <div class="formula-note formula-footer">
-          Cette méthode est équitable entre un joueur casual et un no-life : seule la <em>répartition relative</em> des points compte, pas leur valeur absolue.
-        </div>
+        <div class="formula-note formula-footer" id="f-footer">Cette méthode est équitable entre un joueur casual et un no-life : seule la répartition relative des points compte.</div>
       </div>
     </div>
   </div>
@@ -897,34 +1066,244 @@
   <!-- Hidden canvas for JPG export -->
   <canvas id="export-canvas" style="display:none"></canvas>
 
+
+<!-- Options Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModalOutside(event)">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">✕</button>
+    <div class="modal-title" id="modal-title-text">⚙ Options</div>
+    <div class="modal-tab-bar">
+      <button class="modal-tab active" onclick="switchTab('lang', this)" id="tab-lang">🌐 Langue</button>
+      <button class="modal-tab" onclick="switchTab('legal', this)" id="tab-legal">📜 Légal</button>
+      <button class="modal-tab" onclick="switchTab('contact', this)" id="tab-contact">✉ Contact</button>
+    </div>
+
+    <!-- Language -->
+    <div class="modal-panel active" id="panel-lang">
+      <div class="lang-options">
+        <button class="lang-btn active" onclick="setLang('fr', this)">🇫🇷 Français</button>
+        <button class="lang-btn" onclick="setLang('en', this)">🇬🇧 English</button>
+      </div>
+    </div>
+
+    <!-- Legal -->
+    <div class="modal-panel" id="panel-legal">
+      <div class="legal-text">
+        Summoner Compatibility isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="modal-panel" id="panel-contact">
+      <div class="contact-row">
+        <label id="contact-discord-label">Discord</label>
+        <input type="text" id="contact-discord-display" placeholder="discord.gg/votre-serveur" readonly style="cursor:default;color:var(--text-dim)">
+      </div>
+      <div class="contact-row">
+        <label id="contact-email-label">Email</label>
+        <input type="text" id="contact-email-display" placeholder="contact@example.com" readonly style="cursor:default;color:var(--text-dim)">
+      </div>
+    </div>
+  </div>
+</div>
+
 </div>
 
 <script>
 var DDRAGON_BASE = 'https://ddragon.leagueoflegends.com/cdn/16.4.1';
 
+// ── i18n ────────────────────────────────────────────────────────────
+var LANG = 'fr';
+var I18N = {
+  fr: {
+    subtitle: 'Mesurez votre affinité par la maîtrise des champions',
+    gameName: 'Game Name', tagLine: 'Tag', region: 'Région',
+    btnCompare: 'Analyser la Compatibilité',
+    fillAll: 'Veuillez remplir tous les champs.',
+    loadingChamps: 'Chargement des données champions…',
+    loadingAcc1: 'Récupération compte Invocateur 1',
+    loadingMast1: 'Maîtrises Invocateur 1…',
+    loadingAcc2: 'Récupération compte Invocateur 2',
+    loadingMast2: 'Maîtrises Invocateur 2…',
+    scoreLabel: 'Compatibilité',
+    statChamps: 'Champions en commun',
+    statP1: 'Total pts ',
+    statP2: 'Total pts ',
+    bestTitle: 'Champion en commun le plus compatible',
+    bestShared: 'Compatibilité sur ce champion :',
+    top10: 'Top 10 champions par compatibilité',
+    thChamp: 'Champion', thImportance: 'Importance', thCompat: 'Compatibilité',
+    shareTitle: 'Partager les résultats',
+    btnCopy: '📋 Copier le texte', btnJpg: '🖼 Exporter en image',
+    copied: '✓ Copié dans le presse-papier !',
+    formulaTitle: 'Comment le score est calculé',
+    f1label: '1. Ratio d\'un champion pour un joueur',
+    f1eq: 'ratio = points_champion ÷ points_total_joueur',
+    f1note: 'Exemple : 100 000 pts sur Ahri, 200 000 pts au total → ratio = 50%',
+    f2label: '2. Compatibilité par champion',
+    f2eq: 'compat = min(ratio₁, ratio₂) ÷ max(ratio₁, ratio₂)',
+    f2note: '50% / 50% → 100% · 10% / 50% → 20%',
+    f3label: '3. Poids (moyenne géométrique)',
+    f3eq: 'poids = √(ratio₁ × ratio₂)',
+    f3note: 'Un champion important pour les deux pèse davantage. Un champion à 0.5% chez l\'un pèse quasi zéro.',
+    f4label: '4. Score final (moyenne pondérée)',
+    f4eq: 'score = Σ(compat × poids) ÷ Σ(poids)',
+    f4note: 'Les champions peu joués n\'influencent quasiment pas le résultat — seuls vos vrais favoris comptent.',
+    fFooter: 'Cette méthode est équitable entre un joueur casual et un no-life : seule la répartition relative des points compte.',
+    inv1: 'Invocateur 1', inv2: 'Invocateur 2',
+    optionsTitle: '⚙ Options',
+    copyShareMsg: function(n1,t1,n2,t2,pct,bName,bPct) {
+      return n1+'#'+t1+' est compatible avec '+n2+'#'+t2+' à '+pct+'%\n'
+           + 'Leur champion le plus compatible est '+bName+' avec une compatibilité de '+bPct+'%\n';
+    },
+    copyTop: 'Top champions en commun :',
+    copyFooter: 'Calculé sur summoner-compatibility.vercel.app',
+    desc80: 'Une compatibilité légendaire — vos champions favoris sont les mêmes.',
+    desc60: 'Excellente compatibilité — vous investissez clairement dans les mêmes champions.',
+    desc40: 'Bonne compatibilité — un pool de champions commun solide.',
+    desc20: 'Compatibilité modérée — quelques champions clés en commun.',
+    desc0:  'Compatibilité faible — vos champions favoris ne se recoupent quasiment pas.',
+    generating: '⏳ Génération…',
+    exportFail: 'Export impossible : ',
+    exportFail2: '\nEssayez depuis un serveur (pas en fichier local).',
+    contactDiscord: 'Discord', contactEmail: 'Email'
+  },
+  en: {
+    subtitle: 'Measure your affinity through champion mastery',
+    gameName: 'Game Name', tagLine: 'Tag', region: 'Region',
+    btnCompare: 'Analyse Compatibility',
+    fillAll: 'Please fill in all fields.',
+    loadingChamps: 'Loading champion data…',
+    loadingAcc1: 'Fetching Summoner 1 account',
+    loadingMast1: 'Summoner 1 masteries…',
+    loadingAcc2: 'Fetching Summoner 2 account',
+    loadingMast2: 'Summoner 2 masteries…',
+    scoreLabel: 'Compatibility',
+    statChamps: 'Champions in common',
+    statP1: 'Total pts ',
+    statP2: 'Total pts ',
+    bestTitle: 'Most compatible common champion',
+    bestShared: 'Compatibility on this champion:',
+    top10: 'Top 10 champions by compatibility',
+    thChamp: 'Champion', thImportance: 'Importance', thCompat: 'Compatibility',
+    shareTitle: 'Share results',
+    btnCopy: '📋 Copy text', btnJpg: '🖼 Export as image',
+    copied: '✓ Copied to clipboard!',
+    formulaTitle: 'How the score is calculated',
+    f1label: '1. Champion ratio for a player',
+    f1eq: 'ratio = champion_points ÷ total_player_points',
+    f1note: 'Example: 100,000 pts on Ahri, 200,000 total → ratio = 50%',
+    f2label: '2. Per-champion compatibility',
+    f2eq: 'compat = min(ratio₁, ratio₂) ÷ max(ratio₁, ratio₂)',
+    f2note: '50% / 50% → 100% · 10% / 50% → 20%',
+    f3label: '3. Weight (geometric mean)',
+    f3eq: 'weight = √(ratio₁ × ratio₂)',
+    f3note: 'A champion important to both players weighs more. A champion at 0.5% for one weighs nearly zero.',
+    f4label: '4. Final score (weighted average)',
+    f4eq: 'score = Σ(compat × weight) ÷ Σ(weight)',
+    f4note: 'Rarely played champions barely influence the result — only your true favorites count.',
+    fFooter: 'This method is fair between casual and no-life players: only the relative distribution of points matters.',
+    inv1: 'Summoner 1', inv2: 'Summoner 2',
+    optionsTitle: '⚙ Options',
+    copyShareMsg: function(n1,t1,n2,t2,pct,bName,bPct) {
+      return n1+'#'+t1+' is '+pct+'% compatible with '+n2+'#'+t2+'\n'
+           + 'Their most compatible champion is '+bName+' with a compatibility of '+bPct+'%\n';
+    },
+    copyTop: 'Top common champions:',
+    copyFooter: 'Calculated on summoner-compatibility.vercel.app',
+    desc80: 'Legendary compatibility — your favourite champions are the same.',
+    desc60: 'Excellent compatibility — you clearly invest in the same champions.',
+    desc40: 'Good compatibility — a solid shared champion pool.',
+    desc20: 'Moderate compatibility — a few key champions in common.',
+    desc0:  'Low compatibility — your favourite champions barely overlap.',
+    generating: '⏳ Generating…',
+    exportFail: 'Export failed: ',
+    exportFail2: '\nTry from a server (not a local file).',
+    contactDiscord: 'Discord', contactEmail: 'Email'
+  }
+};
+function t(k) { return (I18N[LANG] && I18N[LANG][k] !== undefined) ? I18N[LANG][k] : (I18N['fr'][k] || k); }
+
+// ── Apply language to all static elements ───────────────────────────
+function applyLang() {
+  document.getElementById('subtitle-text').textContent = t('subtitle');
+  document.getElementById('compareBtn').textContent = t('btnCompare');
+  document.getElementById('score-label-text').textContent = t('scoreLabel');
+  document.getElementById('stat-lbl-champs').textContent = t('statChamps');
+  document.getElementById('best-champ-title').textContent = t('bestTitle');
+  document.getElementById('top10-title').textContent = t('top10');
+  document.getElementById('share-title-text').textContent = t('shareTitle');
+  document.getElementById('btn-copy').innerHTML = t('btnCopy');
+  document.getElementById('btn-jpg').innerHTML = t('btnJpg');
+  document.getElementById('formula-title-text').textContent = t('formulaTitle');
+  document.getElementById('f1label').textContent = t('f1label');
+  document.getElementById('f1eq').textContent = t('f1eq');
+  document.getElementById('f1note').textContent = t('f1note');
+  document.getElementById('f2label').textContent = t('f2label');
+  document.getElementById('f2eq').textContent = t('f2eq');
+  document.getElementById('f2note').textContent = t('f2note');
+  document.getElementById('f3label').textContent = t('f3label');
+  document.getElementById('f3eq').textContent = t('f3eq');
+  document.getElementById('f3note').textContent = t('f3note');
+  document.getElementById('f4label').textContent = t('f4label');
+  document.getElementById('f4eq').textContent = t('f4eq');
+  document.getElementById('f4note').textContent = t('f4note');
+  document.getElementById('f-footer').textContent = t('fFooter');
+  document.getElementById('modal-title-text').textContent = t('optionsTitle');
+  document.getElementById('th-champ').textContent = t('thChamp');
+  document.getElementById('th-importance').textContent = t('thImportance');
+  document.getElementById('th-compat').textContent = t('thCompat');
+  document.getElementById('contact-discord-label').textContent = t('contactDiscord');
+  document.getElementById('contact-email-label').textContent = t('contactEmail');
+  // Player labels (reset if no results yet)
+  if (!window._shareData) {
+    document.getElementById('label-p1').textContent = '⬡ ' + t('inv1');
+    document.getElementById('label-p2').textContent = '⬡ ' + t('inv2');
+    document.getElementById('stat-lbl-p1').textContent = t('statP1') + t('inv1');
+    document.getElementById('stat-lbl-p2').textContent = t('statP2') + t('inv2');
+    document.getElementById('th-p1').textContent = t('inv1');
+    document.getElementById('th-p2').textContent = t('inv2');
+  }
+}
+
+// ── Modal ────────────────────────────────────────────────────────────
+function openModal() { document.getElementById('modal-overlay').classList.add('open'); }
+function closeModal() { document.getElementById('modal-overlay').classList.remove('open'); }
+function closeModalOutside(e) { if (e.target === document.getElementById('modal-overlay')) closeModal(); }
+
+function switchTab(name, btn) {
+  document.querySelectorAll('.modal-tab').forEach(function(b) { b.classList.remove('active'); });
+  document.querySelectorAll('.modal-panel').forEach(function(p) { p.classList.remove('active'); });
+  btn.classList.add('active');
+  document.getElementById('panel-' + name).classList.add('active');
+}
+
+function setLang(lang, btn) {
+  LANG = lang;
+  document.querySelectorAll('.lang-btn').forEach(function(b) { b.classList.remove('active'); });
+  btn.classList.add('active');
+  applyLang();
+}
+
+// ── Status ───────────────────────────────────────────────────────────
 function setStatus(msg, type) {
   var el = document.getElementById('status-bar');
   el.className = type;
   el.style.display = 'block';
-  el.innerHTML = type === 'loading'
-    ? '<span class="loader"></span>' + msg
-    : msg;
+  el.innerHTML = type === 'loading' ? '<span class="loader"></span>' + msg : msg;
 }
+function clearStatus() { document.getElementById('status-bar').style.display = 'none'; }
 
-function clearStatus() {
-  document.getElementById('status-bar').style.display = 'none';
-}
-
+// ── API calls ────────────────────────────────────────────────────────
 function apiFetch(endpoint) {
   return fetch(endpoint).then(function(r) {
     return r.json().then(function(data) {
       if (!r.ok) {
         var msg = (data && data.status && data.status.message) ? data.status.message
-                : (data && data.error) ? data.error
-                : 'Erreur ' + r.status;
-        if (r.status === 403) throw new Error('Clé API invalide ou expirée (403). Vérifiez la variable RIOT_API_KEY sur Vercel.');
-        if (r.status === 404) throw new Error('Introuvable (404) : ' + msg + '. Vérifiez nom/tag/région.');
-        if (r.status === 429) throw new Error('Trop de requêtes (429). Patientez quelques secondes.');
+                : (data && data.error) ? data.error : 'Error ' + r.status;
+        if (r.status === 403) throw new Error('API key invalid or expired (403). Dev keys expire every 24h.');
+        if (r.status === 404) throw new Error('Not found (404): ' + msg + '. Check name/tag/region.');
+        if (r.status === 429) throw new Error('Rate limited (429). Please wait a few seconds.');
         throw new Error(msg);
       }
       return data;
@@ -939,47 +1318,64 @@ function getChampionData() {
     return map;
   });
 }
-
 function getAccount(gameName, tagLine, region) {
   return apiFetch('/api/account?gameName=' + encodeURIComponent(gameName) +
-    '&tagLine=' + encodeURIComponent(tagLine) +
-    '&region=' + encodeURIComponent(region));
+    '&tagLine=' + encodeURIComponent(tagLine) + '&region=' + encodeURIComponent(region));
 }
-
 function getMasteries(puuid, region) {
-  return apiFetch('/api/masteries?puuid=' + encodeURIComponent(puuid) +
-    '&region=' + encodeURIComponent(region));
+  return apiFetch('/api/masteries?puuid=' + encodeURIComponent(puuid) + '&region=' + encodeURIComponent(region));
+}
+function getSummoner(puuid, region) {
+  return apiFetch('/api/summoner?puuid=' + encodeURIComponent(puuid) + '&region=' + encodeURIComponent(region));
 }
 
+// ── Main compare ─────────────────────────────────────────────────────
 function startCompare() {
-  var name1   = document.getElementById('name1').value.trim();
-  var tag1    = document.getElementById('tag1').value.trim();
-  var name2   = document.getElementById('name2').value.trim();
-  var tag2    = document.getElementById('tag2').value.trim();
+  var name1 = document.getElementById('name1').value.trim();
+  var tag1  = document.getElementById('tag1').value.trim();
+  var name2 = document.getElementById('name2').value.trim();
+  var tag2  = document.getElementById('tag2').value.trim();
   var region1 = document.getElementById('region1').value;
   var region2 = document.getElementById('region2').value;
-
-  if (!name1 || !tag1 || !name2 || !tag2) {
-    setStatus('Veuillez remplir tous les champs.', 'error');
-    return;
-  }
+  if (!name1 || !tag1 || !name2 || !tag2) { setStatus(t('fillAll'), 'error'); return; }
 
   var btn = document.getElementById('compareBtn');
   btn.disabled = true;
   document.getElementById('results').style.display = 'none';
+  // Hide icons while loading
+  document.getElementById('icon1').style.display = 'none';
+  document.getElementById('icon2').style.display = 'none';
 
-  setStatus('Chargement des données champions…', 'loading');
+  setStatus(t('loadingChamps'), 'loading');
 
   getChampionData().then(function(champMap) {
-    setStatus('Récupération compte Joueur 1 (' + name1 + '#' + tag1 + ')…', 'loading');
+    setStatus(t('loadingAcc1') + ' (' + name1 + '#' + tag1 + ')…', 'loading');
     return getAccount(name1, tag1, region1).then(function(a1) {
-      setStatus('Maîtrises Joueur 1…', 'loading');
+      setStatus(t('loadingMast1'), 'loading');
       return getMasteries(a1.puuid, region1).then(function(m1) {
-        setStatus('Récupération compte Joueur 2 (' + name2 + '#' + tag2 + ')…', 'loading');
-        return getAccount(name2, tag2, region2).then(function(a2) {
-          setStatus('Maîtrises Joueur 2…', 'loading');
-          return getMasteries(a2.puuid, region2).then(function(m2) {
-            renderResults(name1, tag1, m1, name2, tag2, m2, champMap);
+        return getSummoner(a1.puuid, region1).then(function(s1) {
+          setStatus(t('loadingAcc2') + ' (' + name2 + '#' + tag2 + ')…', 'loading');
+          return getAccount(name2, tag2, region2).then(function(a2) {
+            setStatus(t('loadingMast2'), 'loading');
+            return getMasteries(a2.puuid, region2).then(function(m2) {
+              return getSummoner(a2.puuid, region2).then(function(s2) {
+                // Update icons
+                var icon1Url = DDRAGON_BASE + '/img/profileicon/' + s1.profileIconId + '.png';
+                var icon2Url = DDRAGON_BASE + '/img/profileicon/' + s2.profileIconId + '.png';
+                var ic1 = document.getElementById('icon1');
+                var ic2 = document.getElementById('icon2');
+                ic1.src = icon1Url; ic1.alt = name1; ic1.style.display = 'block';
+                ic2.src = icon2Url; ic2.alt = name2; ic2.style.display = 'block';
+                // Update dynamic labels
+                document.getElementById('label-p1').textContent = '⬡ ' + name1 + '#' + tag1;
+                document.getElementById('label-p2').textContent = '⬡ ' + name2 + '#' + tag2;
+                document.getElementById('stat-lbl-p1').textContent = t('statP1') + name1;
+                document.getElementById('stat-lbl-p2').textContent = t('statP2') + name2;
+                document.getElementById('th-p1').textContent = name1;
+                document.getElementById('th-p2').textContent = name2;
+                renderResults(name1, tag1, m1, name2, tag2, m2, champMap, s1, s2);
+              });
+            });
           });
         });
       });
@@ -987,410 +1383,440 @@ function startCompare() {
   }).catch(function(err) {
     console.error(err);
     setStatus('Erreur : ' + err.message, 'error');
-  }).then(function() {
-    btn.disabled = false;
-  });
+  }).then(function() { btn.disabled = false; });
 }
 
-function renderResults(name1, tag1, m1, name2, tag2, m2, champMap) {
+// ── Render ───────────────────────────────────────────────────────────
+function renderResults(name1, tag1, m1, name2, tag2, m2, champMap, s1, s2) {
   var map1 = {}, map2 = {};
   m1.forEach(function(m) { map1[m.championId] = m.championPoints; });
   m2.forEach(function(m) { map2[m.championId] = m.championPoints; });
 
-  // Totaux de points par joueur
-  var total1 = m1.reduce(function(s, m) { return s + m.championPoints; }, 0);
-  var total2 = m2.reduce(function(s, m) { return s + m.championPoints; }, 0);
+  var total1 = m1.reduce(function(s,m){ return s + m.championPoints; }, 0);
+  var total2 = m2.reduce(function(s,m){ return s + m.championPoints; }, 0);
 
   var allIds = {};
-  Object.keys(map1).forEach(function(id) { allIds[id] = true; });
-  Object.keys(map2).forEach(function(id) { allIds[id] = true; });
+  Object.keys(map1).forEach(function(id){ allIds[id]=true; });
+  Object.keys(map2).forEach(function(id){ allIds[id]=true; });
 
-  // Pour chaque champion commun : compatibilité ratio × pondération par importance
-  // Un champion à 50%/50% pèse bien plus qu'un champion à 0.9%/0.9%
   var sharedChamps = [];
-  var sumWeightedCompat = 0;
-  var sumWeights = 0;
+  var sumW = 0, sumWC = 0;
 
   Object.keys(allIds).forEach(function(id) {
-    var pts1 = map1[id] || 0;
-    var pts2 = map2[id] || 0;
-    if (pts1 === 0 || pts2 === 0) return;
-
-    var ratio1 = total1 > 0 ? pts1 / total1 : 0;
-    var ratio2 = total2 > 0 ? pts2 / total2 : 0;
-
-    var minRatio = Math.min(ratio1, ratio2);
-    var maxRatio = Math.max(ratio1, ratio2);
-    var champCompat = maxRatio > 0 ? minRatio / maxRatio : 0;
-
-    // Poids = moyenne géométrique des deux ratios
-    // Favorise les champions importants pour LES DEUX joueurs
-    var weight = Math.sqrt(ratio1 * ratio2);
-
-    sumWeightedCompat += champCompat * weight;
-    sumWeights += weight;
-
-    sharedChamps.push({
-      id: id,
-      pts1: pts1, pts2: pts2,
-      ratio1: ratio1, ratio2: ratio2,
-      champCompat: champCompat,
-      weight: weight
-    });
+    var pts1 = map1[id]||0, pts2 = map2[id]||0;
+    if (!pts1 || !pts2) return;
+    var r1 = total1>0 ? pts1/total1 : 0;
+    var r2 = total2>0 ? pts2/total2 : 0;
+    var mn = Math.min(r1,r2), mx = Math.max(r1,r2);
+    var cc = mx>0 ? mn/mx : 0;
+    var w = Math.sqrt(r1*r2);
+    sumWC += cc*w; sumW += w;
+    sharedChamps.push({id:id, pts1:pts1, pts2:pts2, ratio1:r1, ratio2:r2, champCompat:cc, weight:w});
   });
 
-  // Moyenne pondérée — les petits champions n'influencent quasi pas le score
-  var compat = sumWeights > 0 ? (sumWeightedCompat / sumWeights) * 100 : 0;
+  var compat = sumW>0 ? (sumWC/sumW)*100 : 0;
   var compatStr = compat.toFixed(1);
 
   document.getElementById('score-pct').textContent = compatStr + '%';
   document.getElementById('score-desc').textContent = getCompatDesc(compat);
-  var offset = 477.52 - (compat / 100) * 477.52;
-  setTimeout(function() {
-    document.getElementById('score-arc').style.strokeDashoffset = offset;
-  }, 100);
+  var offset = 477.52 - (compat/100)*477.52;
+  setTimeout(function(){ document.getElementById('score-arc').style.strokeDashoffset = offset; }, 100);
 
   document.getElementById('stat-champions').textContent = sharedChamps.length;
-  // Afficher les totaux de points de chaque joueur
   document.getElementById('stat-summin').textContent = total1.toLocaleString('fr-FR') + ' pts';
   document.getElementById('stat-summax').textContent = total2.toLocaleString('fr-FR') + ' pts';
 
-  // Trier par poids (champions les plus joués des deux côtés en premier)
-  sharedChamps.sort(function(a, b) { return b.weight - a.weight; });
+  sharedChamps.sort(function(a,b){ return b.weight - a.weight; });
 
+  // Best champ
   var bestCard = document.getElementById('best-champ-card');
   if (sharedChamps.length > 0) {
     var best = sharedChamps[0];
     var champ = champMap[best.id];
-    var champName = champ ? champ.name : 'Champion #' + best.id;
+    var cName = champ ? champ.name : 'ID '+best.id;
     var imgHtml = champ
-      ? '<img class="champ-icon" src="' + DDRAGON_BASE + '/img/champion/' + champ.image.full + '" alt="' + champName + '" onerror="this.style.display=\'none\'">'
+      ? '<img class="champ-icon" src="'+DDRAGON_BASE+'/img/champion/'+champ.image.full+'" alt="'+cName+'" onerror="this.style.display=\'none\'">'
       : '<div class="champ-icon-placeholder">?</div>';
     bestCard.innerHTML = imgHtml +
       '<div class="champ-info">' +
-        '<div class="champ-name">' + champName + '</div>' +
+        '<div class="champ-name">'+cName+'</div>' +
         '<div class="champ-pts-row">' +
-          '<div class="champ-pts p1">' + name1 + '#' + tag1 + ' : <span>' + best.pts1.toLocaleString('fr-FR') + '</span> pts <em style="color:var(--text-dim)">(' + (best.ratio1 * 100).toFixed(2) + '%)</em></div>' +
-          '<div class="champ-pts p2">' + name2 + '#' + tag2 + ' : <span>' + best.pts2.toLocaleString('fr-FR') + '</span> pts <em style="color:var(--text-dim)">(' + (best.ratio2 * 100).toFixed(2) + '%)</em></div>' +
+          '<div class="champ-pts p1">'+name1+'#'+tag1+' : <span>'+best.pts1.toLocaleString('fr-FR')+'</span> pts <em style="color:var(--text-dim)">('+( best.ratio1*100).toFixed(2)+'%)</em></div>' +
+          '<div class="champ-pts p2">'+name2+'#'+tag2+' : <span>'+best.pts2.toLocaleString('fr-FR')+'</span> pts <em style="color:var(--text-dim)">('+( best.ratio2*100).toFixed(2)+'%)</em></div>' +
         '</div>' +
-        '<div style="margin-top:8px;font-size:.85rem;color:var(--text-dim);font-style:italic;">Compatibilité sur ce champion : <strong style="color:var(--gold)">' + (best.champCompat * 100).toFixed(1) + '%</strong></div>' +
+        '<div style="margin-top:8px;font-size:.85rem;color:var(--text-dim);font-style:italic;">'+t('bestShared')+' <strong style="color:var(--gold)">'+(best.champCompat*100).toFixed(1)+'%</strong></div>' +
       '</div>';
   } else {
     bestCard.innerHTML = '<div style="color:var(--text-dim);font-style:italic;">Aucun champion joué en commun.</div>';
   }
 
+  // Table
   var tbody = document.getElementById('top-table-body');
   tbody.innerHTML = '';
-  sharedChamps.slice(0, 10).forEach(function(c, i) {
+  sharedChamps.slice(0,10).forEach(function(c,i) {
     var champ = champMap[c.id];
-    var champName = champ ? champ.name : 'ID ' + c.id;
-    var imgHtml = champ
-      ? '<img class="mini-icon" src="' + DDRAGON_BASE + '/img/champion/' + champ.image.full + '" alt="' + champName + '" onerror="this.style.display=\'none\'">'
-      : '';
+    var cName = champ ? champ.name : 'ID '+c.id;
+    var imgHtml = champ ? '<img class="mini-icon" src="'+DDRAGON_BASE+'/img/champion/'+champ.image.full+'" alt="'+cName+'" onerror="this.style.display=\'none\'">' : '';
     var tr = document.createElement('tr');
     tr.innerHTML =
-      '<td><span class="rank-num">' + (i + 1) + '</span></td>' +
-      '<td><div class="champ-cell">' + imgHtml + '<span>' + champName + '</span></div></td>' +
-      '<td class="right pts-p1">' + c.pts1.toLocaleString('fr-FR') + '<br><em style="font-size:.8em;color:var(--text-dim)">(' + (c.ratio1*100).toFixed(2) + '%)</em></td>' +
-      '<td class="right pts-p2">' + c.pts2.toLocaleString('fr-FR') + '<br><em style="font-size:.8em;color:var(--text-dim)">(' + (c.ratio2*100).toFixed(2) + '%)</em></td>' +
-      '<td class="right" style="color:var(--text-dim)">' + (c.weight * 100).toFixed(2) + '%</td>' +
-      '<td class="right pts-min">' + (c.champCompat * 100).toFixed(1) + '%</td>';
+      '<td><span class="rank-num">'+(i+1)+'</span></td>'+
+      '<td><div class="champ-cell">'+imgHtml+'<span>'+cName+'</span></div></td>'+
+      '<td class="right pts-p1">'+c.pts1.toLocaleString('fr-FR')+'<br><em style="font-size:.8em;color:var(--text-dim)">('+( c.ratio1*100).toFixed(2)+'%)</em></td>'+
+      '<td class="right pts-p2">'+c.pts2.toLocaleString('fr-FR')+'<br><em style="font-size:.8em;color:var(--text-dim)">('+( c.ratio2*100).toFixed(2)+'%)</em></td>'+
+      '<td class="right" style="color:var(--text-dim)">'+(c.weight*100).toFixed(2)+'%</td>'+
+      '<td class="right pts-min">'+(c.champCompat*100).toFixed(1)+'%</td>';
     tbody.appendChild(tr);
   });
 
-  // Store data for sharing
   window._shareData = {
-    name1: name1, tag1: tag1,
-    name2: name2, tag2: tag2,
-    compat: compat, compatStr: compatStr,
-    sharedChamps: sharedChamps,
-    champMap: champMap
+    name1:name1, tag1:tag1, name2:name2, tag2:tag2,
+    compat:compat, compatStr:compatStr,
+    sharedChamps:sharedChamps, champMap:champMap,
+    icon1Id: s1 ? s1.profileIconId : null,
+    icon2Id: s2 ? s2.profileIconId : null
   };
 
   clearStatus();
   document.getElementById('results').style.display = 'block';
   document.getElementById('share-section').style.display = 'block';
-  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  document.getElementById('results').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 function getCompatDesc(pct) {
-  if (pct >= 80) return "Une synergie légendaire — vos champions favoris sont les mêmes, quelle que soit votre expérience.";
-  if (pct >= 60) return "Excellente synergie — vous investissez clairement dans les mêmes champions.";
-  if (pct >= 40) return "Bonne synergie — un pool de champions commun solide, même si les styles diffèrent.";
-  if (pct >= 20) return "Synergie modérée — quelques champions clés en commun, mais des priorités différentes.";
-  return "Synergie faible — vos champions favoris respectifs ne se recoupent quasiment pas.";
+  if (pct>=80) return t('desc80');
+  if (pct>=60) return t('desc60');
+  if (pct>=40) return t('desc40');
+  if (pct>=20) return t('desc20');
+  return t('desc0');
 }
 
-// ── Share functions ─────────────────────────────────────────────────
-
+// ── Copy text (no phone number detection) ───────────────────────────
 function copyText() {
   var d = window._shareData;
   if (!d) return;
   var best = d.sharedChamps[0];
-  var bestName = (best && d.champMap[best.id]) ? d.champMap[best.id].name : '—';
-  var bestPct = best ? (best.champCompat * 100).toFixed(1) : '—';
+  var bName = (best && d.champMap[best.id]) ? d.champMap[best.id].name : '—';
+  var bPct  = best ? (best.champCompat*100).toFixed(1) : '—';
+
+  // Use non-breaking spaces and en-dashes to prevent phone number detection
+  // Points separated by spaces, not raw numbers bunched together
   var lines = [
-    d.name1 + '#' + d.tag1 + ' est compatible avec ' + d.name2 + '#' + d.tag2 + ' à ' + d.compatStr + '%',
-    'Leur champion le plus compatible est ' + bestName + ' avec une compatibilité de ' + bestPct + '%',
-    '',
-    'Top champions en commun :'
+    t('copyShareMsg')(d.name1, d.tag1, d.name2, d.tag2, d.compatStr, bName, bPct),
+    t('copyTop')
   ];
-  d.sharedChamps.slice(0, 10).forEach(function(c, i) {
-    var name = d.champMap[c.id] ? d.champMap[c.id].name : 'ID ' + c.id;
-    lines.push('  ' + (i+1) + '. ' + name + ' — ' + (c.champCompat*100).toFixed(1) + '% (pts: ' + c.pts1.toLocaleString('fr-FR') + ' / ' + c.pts2.toLocaleString('fr-FR') + ')');
+  d.sharedChamps.slice(0,10).forEach(function(c,i) {
+    var name = d.champMap[c.id] ? d.champMap[c.id].name : 'ID '+c.id;
+    // Format pts with thin space separator (U+2009) to prevent phone detection
+    var pts1 = c.pts1.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u2009');
+    var pts2 = c.pts2.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u2009');
+    lines.push('  '+(i+1)+'. '+name+' \u2014 '+(c.champCompat*100).toFixed(1)+'% ('+pts1+' / '+pts2+' pts)');
   });
   lines.push('');
-  lines.push('Calculé sur summoner-synergy.vercel.app');
+  lines.push(t('copyFooter'));
 
   var text = lines.join('\n');
   if (navigator.clipboard && navigator.clipboard.writeText) {
-    navigator.clipboard.writeText(text).then(function() { showCopyConfirm(); });
+    navigator.clipboard.writeText(text).then(showCopyConfirm);
   } else {
     var ta = document.createElement('textarea');
-    ta.value = text;
-    document.body.appendChild(ta);
-    ta.select();
-    document.execCommand('copy');
-    document.body.removeChild(ta);
+    ta.value = text; document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
     showCopyConfirm();
   }
 }
 
 function showCopyConfirm() {
   var el = document.getElementById('copy-confirm');
+  el.textContent = t('copied');
   el.style.display = 'block';
-  setTimeout(function() { el.style.display = 'none'; }, 2500);
+  setTimeout(function(){ el.style.display='none'; }, 2500);
 }
 
+// ── JPG Export — fixed layout ────────────────────────────────────────
 function exportJPG() {
   var d = window._shareData;
   if (!d) return;
-
   var btn = document.getElementById('btn-jpg');
   btn.disabled = true;
-  btn.innerHTML = '<span class="share-icon">⏳</span> Génération…';
+  btn.innerHTML = t('generating');
 
-  var W = 900, H = 620 + Math.min(d.sharedChamps.length, 10) * 38;
+  var top10 = d.sharedChamps.slice(0,10);
+
+  // Fixed layout constants
+  var W = 860;
+  var ROW_H = 36;
+  var HEADER_H = 320; // title + score + best champ
+  var TABLE_HEADER_H = 30;
+  var TABLE_H = top10.length * ROW_H;
+  var FOOTER_H = 36;
+  var H = HEADER_H + TABLE_HEADER_H + TABLE_H + FOOTER_H + 20;
+
   var canvas = document.getElementById('export-canvas');
   canvas.width = W;
   canvas.height = H;
   var ctx = canvas.getContext('2d');
 
-  // Background
+  // ── Background ──
   ctx.fillStyle = '#050810';
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0,0,W,H);
 
-  // Gold top border
-  var topGrad = ctx.createLinearGradient(0,0,W,0);
-  topGrad.addColorStop(0, 'transparent');
-  topGrad.addColorStop(0.5, '#c8a96e');
-  topGrad.addColorStop(1, 'transparent');
-  ctx.fillStyle = topGrad;
-  ctx.fillRect(0, 0, W, 2);
-
-  // Grid lines (subtle)
-  ctx.strokeStyle = 'rgba(200,169,110,0.04)';
+  // subtle grid
+  ctx.strokeStyle = 'rgba(200,169,110,0.035)';
   ctx.lineWidth = 1;
-  for (var gx = 0; gx < W; gx += 60) { ctx.beginPath(); ctx.moveTo(gx,0); ctx.lineTo(gx,H); ctx.stroke(); }
-  for (var gy = 0; gy < H; gy += 60) { ctx.beginPath(); ctx.moveTo(0,gy); ctx.lineTo(W,gy); ctx.stroke(); }
+  for (var x=0;x<W;x+=60){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke();}
+  for (var y=0;y<H;y+=60){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke();}
 
-  // Title
+  // top gold line
+  var g=ctx.createLinearGradient(0,0,W,0);
+  g.addColorStop(0,'transparent');g.addColorStop(.5,'#c8a96e');g.addColorStop(1,'transparent');
+  ctx.fillStyle=g; ctx.fillRect(0,0,W,2);
+
+  function goldLine(yy) {
+    var g2=ctx.createLinearGradient(0,0,W,0);
+    g2.addColorStop(0,'transparent');g2.addColorStop(.5,'rgba(200,169,110,0.3)');g2.addColorStop(1,'transparent');
+    ctx.fillStyle=g2; ctx.fillRect(0,yy,W,1);
+  }
+
+  // ── Title ──
+  ctx.textAlign = 'center';
   ctx.fillStyle = '#f0d89a';
-  ctx.font = 'bold 28px Georgia, serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('SUMMONER SYNERGY', W/2, 50);
+  ctx.font = 'bold 26px Georgia,serif';
+  ctx.fillText('SUMMONER COMPATIBILITY', W/2, 42);
+  goldLine(54);
 
-  // Gold line under title
-  var lineGrad = ctx.createLinearGradient(W/2-120,0,W/2+120,0);
-  lineGrad.addColorStop(0,'transparent'); lineGrad.addColorStop(0.5,'#c8a96e'); lineGrad.addColorStop(1,'transparent');
-  ctx.fillStyle = lineGrad;
-  ctx.fillRect(W/2-120, 62, 240, 1);
+  // ── Summoner names with icons ──
+  var iconsLoaded = 0;
+  var iconsNeeded = (d.icon1Id ? 1 : 0) + (d.icon2Id ? 1 : 0);
 
-  // Summoner names
-  ctx.font = '20px Georgia, serif';
-  ctx.fillStyle = '#6ab0e8';
-  ctx.textAlign = 'left';
-  ctx.fillText(d.name1 + '#' + d.tag1, 60, 106);
-  ctx.fillStyle = '#7a7568';
-  ctx.textAlign = 'center';
-  ctx.fillText('⚔', W/2, 106);
-  ctx.fillStyle = '#e8846a';
-  ctx.textAlign = 'right';
-  ctx.fillText(d.name2 + '#' + d.tag2, W-60, 106);
-
-  // Big score
-  ctx.textAlign = 'center';
-  ctx.font = 'bold 72px Georgia, serif';
-  ctx.fillStyle = '#f0d89a';
-  ctx.shadowColor = 'rgba(200,169,110,0.4)';
-  ctx.shadowBlur = 20;
-  ctx.fillText(d.compatStr + '%', W/2, 210);
-  ctx.shadowBlur = 0;
-
-  ctx.font = 'italic 15px Georgia, serif';
-  ctx.fillStyle = '#7a7568';
-  ctx.fillText('de compatibilité', W/2, 235);
-
-  // Compat description
-  ctx.font = 'italic 14px Georgia, serif';
-  ctx.fillStyle = '#ccc8b8';
-  ctx.fillText(getCompatDesc(parseFloat(d.compatStr)), W/2, 265);
-
-  // Best champ block
-  var best = d.sharedChamps[0];
-  if (best) {
-    var bestChamp = d.champMap[best.id];
-    var bestName = bestChamp ? bestChamp.name : 'ID ' + best.id;
-
-    // Card bg
-    roundRect(ctx, 60, 290, W-120, 100, 4, 'rgba(13,18,32,0.9)', 'rgba(200,169,110,0.35)');
-
-    ctx.font = '11px Georgia, serif';
-    ctx.fillStyle = '#8b6914';
+  function afterIcons() {
+    // Player names
+    ctx.font = 'bold 17px Georgia,serif';
+    ctx.fillStyle = '#6ab0e8';
     ctx.textAlign = 'left';
-    ctx.fillText('CHAMPION EN COMMUN LE PLUS FORT', 86, 314);
+    ctx.fillText(d.name1+'#'+d.tag1, 80, 92);
+    ctx.fillStyle = '#7a7568';
+    ctx.textAlign = 'center';
+    ctx.fillText('vs', W/2, 92);
+    ctx.fillStyle = '#e8846a';
+    ctx.textAlign = 'right';
+    ctx.fillText(d.name2+'#'+d.tag2, W-80, 92);
 
-    var drawChamp = function() {
-      ctx.font = 'bold 20px Georgia, serif';
-      ctx.fillStyle = '#f0d89a';
+    goldLine(104);
+
+    // ── Big score ──
+    ctx.textAlign = 'center';
+    ctx.font = 'bold 64px Georgia,serif';
+    ctx.fillStyle = '#f0d89a';
+    ctx.shadowColor = 'rgba(200,169,110,0.35)';
+    ctx.shadowBlur = 18;
+    ctx.fillText(d.compatStr+'%', W/2, 175);
+    ctx.shadowBlur = 0;
+    ctx.font = 'italic 13px Georgia,serif';
+    ctx.fillStyle = '#7a7568';
+    ctx.fillText(LANG==='en' ? 'compatibility' : 'de compatibilité', W/2, 196);
+    ctx.font = 'italic 13px Georgia,serif';
+    ctx.fillStyle = '#ccc8b8';
+    ctx.fillText(getCompatDesc(parseFloat(d.compatStr)), W/2, 216);
+
+    goldLine(228);
+
+    // ── Best champ card ──
+    var best = top10[0];
+    if (best) {
+      var bChamp = d.champMap[best.id];
+      var bName = bChamp ? bChamp.name : 'ID '+best.id;
+      ctx.font = '10px Georgia,serif';
+      ctx.fillStyle = '#8b6914';
       ctx.textAlign = 'left';
-      ctx.fillText(bestName, 86, 350);
+      ctx.fillText((LANG==='en'?'MOST COMPATIBLE CHAMPION':'CHAMPION EN COMMUN LE PLUS COMPATIBLE'), 48, 248);
 
-      ctx.font = '14px Georgia, serif';
+      ctx.font = 'bold 18px Georgia,serif';
+      ctx.fillStyle = '#f0d89a';
+      ctx.fillText(bName, 48, 272);
+
+      ctx.font = '12px Georgia,serif';
       ctx.fillStyle = '#6ab0e8';
-      ctx.fillText(d.name1+'#'+d.tag1+' : '+best.pts1.toLocaleString('fr-FR')+' pts ('+( best.ratio1*100).toFixed(2)+'%)', 86, 374);
+      ctx.fillText(d.name1+'#'+d.tag1+' : '+formatPts(best.pts1)+' pts ('+( best.ratio1*100).toFixed(2)+'%)', 48, 290);
       ctx.fillStyle = '#e8846a';
-      ctx.fillText(d.name2+'#'+d.tag2+' : '+best.pts2.toLocaleString('fr-FR')+' pts ('+( best.ratio2*100).toFixed(2)+'%)', 86, 394);
+      ctx.fillText(d.name2+'#'+d.tag2+' : '+formatPts(best.pts2)+' pts ('+( best.ratio2*100).toFixed(2)+'%)', 48, 306);
 
-      ctx.font = 'bold 22px Georgia, serif';
+      // Compat badge right side
+      ctx.font = 'bold 28px Georgia,serif';
       ctx.fillStyle = '#c8a96e';
       ctx.textAlign = 'right';
-      ctx.fillText((best.champCompat*100).toFixed(1)+'%', W-80, 370);
-      ctx.font = '11px Georgia, serif';
+      ctx.fillText((best.champCompat*100).toFixed(1)+'%', W-48, 284);
+      ctx.font = '11px Georgia,serif';
       ctx.fillStyle = '#7a7568';
-      ctx.fillText('compatibilité', W-80, 388);
-    };
+      ctx.fillText(LANG==='en'?'compatibility':'compatibilité', W-48, 300);
 
-    if (bestChamp) {
-      var img = new Image();
-      img.crossOrigin = 'anonymous';
-      img.onload = function() {
-        ctx.save();
-        ctx.beginPath();
-        ctx.arc(W-130, 340, 30, 0, Math.PI*2);
-        ctx.clip();
-        ctx.drawImage(img, W-160, 310, 60, 60);
-        ctx.restore();
-        drawChamp();
-        drawTable(ctx, d, W, H);
-        finishExport(canvas, btn);
-      };
-      img.onerror = function() {
-        drawChamp();
-        drawTable(ctx, d, W, H);
-        finishExport(canvas, btn);
-      };
-      img.src = 'https://ddragon.leagueoflegends.com/cdn/16.4.1/img/champion/' + bestChamp.image.full;
-    } else {
-      drawChamp();
-      drawTable(ctx, d, W, H);
-      finishExport(canvas, btn);
+      // Draw champ icon
+      if (bChamp) {
+        var ci = new Image();
+        ci.crossOrigin = 'anonymous';
+        ci.onload = function() {
+          ctx.save();
+          ctx.beginPath();
+          ctx.arc(W-160,275,24,0,Math.PI*2);
+          ctx.clip();
+          ctx.drawImage(ci,W-184,251,48,48);
+          ctx.restore();
+          drawTableSection(ctx,d,top10,W,HEADER_H,ROW_H,TABLE_HEADER_H,H,FOOTER_H);
+          finishExport(canvas,btn);
+        };
+        ci.onerror = function() {
+          drawTableSection(ctx,d,top10,W,HEADER_H,ROW_H,TABLE_HEADER_H,H,FOOTER_H);
+          finishExport(canvas,btn);
+        };
+        ci.src = DDRAGON_BASE+'/img/champion/'+bChamp.image.full;
+        return;
+      }
     }
-  } else {
-    drawTable(ctx, d, W, H);
-    finishExport(canvas, btn);
+
+    drawTableSection(ctx,d,top10,W,HEADER_H,ROW_H,TABLE_HEADER_H,H,FOOTER_H);
+    finishExport(canvas,btn);
   }
+
+  // Load summoner icons
+  if (iconsNeeded === 0) {
+    afterIcons();
+    return;
+  }
+
+  function tryDrawIcon(iconId, cx, done) {
+    if (!iconId) { done(); return; }
+    var img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = function() {
+      ctx.save();
+      ctx.beginPath();
+      ctx.arc(cx, 78, 18, 0, Math.PI*2);
+      ctx.clip();
+      ctx.drawImage(img, cx-18, 60, 36, 36);
+      ctx.restore();
+      done();
+    };
+    img.onerror = done;
+    img.src = DDRAGON_BASE+'/img/profileicon/'+iconId+'.png';
+  }
+
+  tryDrawIcon(d.icon1Id, 48, function() {
+    tryDrawIcon(d.icon2Id, W-48, function() {
+      afterIcons();
+    });
+  });
 }
 
-function drawTable(ctx, d, W, H) {
-  var startY = 410;
-  var colX = [60, 220, 490, 650, 800];
+function drawTableSection(ctx, d, top10, W, startY, ROW_H, TH_H, H, FOOTER_H) {
+  // Column layout — fixed pixel positions
+  var cols = [
+    {label:'#',         x:32,  w:28,  align:'right'},
+    {label:'Champion',  x:68,  w:200, align:'left'},
+    {label:d.name1,     x:330, w:140, align:'right'},
+    {label:d.name2,     x:490, w:140, align:'right'},
+    {label:'Importance',x:640, w:80,  align:'right'},
+    {label:'Compat.',   x:740, w:80,  align:'right'}
+  ];
 
-  // Table header
-  ctx.fillStyle = 'rgba(13,18,32,0.9)';
-  ctx.fillRect(60, startY, W-120, 28);
-  ctx.font = '10px Georgia, serif';
+  var y = startY;
+
+  // Table header bg
+  ctx.fillStyle = 'rgba(13,18,32,0.95)';
+  ctx.fillRect(0, y, W, TH_H);
+
+  ctx.font = '10px Georgia,serif';
   ctx.fillStyle = '#7a7568';
-  ctx.textAlign = 'left';
-  ['#  Champion', 'Joueur 1', 'Joueur 2', 'Importance', 'Compat.'].forEach(function(h, i) {
-    ctx.textAlign = i === 0 ? 'left' : 'right';
-    ctx.fillText(h, i === 0 ? colX[0]+8 : colX[i]+70, startY + 18);
+  cols.forEach(function(c) {
+    ctx.textAlign = c.align;
+    var tx = c.align === 'right' ? c.x + c.w : c.x;
+    ctx.fillText(c.label, tx, y + 20);
   });
 
-  d.sharedChamps.slice(0, 10).forEach(function(c, i) {
-    var y = startY + 28 + i * 38;
-    ctx.fillStyle = i % 2 === 0 ? 'rgba(10,14,26,0.7)' : 'rgba(13,18,32,0.5)';
-    ctx.fillRect(60, y, W-120, 38);
+  y += TH_H;
+
+  // Rows
+  top10.forEach(function(c, i) {
+    var ry = y + i * ROW_H;
+    ctx.fillStyle = i%2===0 ? 'rgba(10,14,26,0.8)' : 'rgba(13,18,32,0.6)';
+    ctx.fillRect(0, ry, W, ROW_H);
 
     var champ = d.champMap[c.id];
-    var name = champ ? champ.name : 'ID ' + c.id;
+    var cName = champ ? champ.name : 'ID '+c.id;
 
-    ctx.font = '11px Georgia, serif';
+    // Rank
+    ctx.font = '11px Georgia,serif';
     ctx.fillStyle = '#8b6914';
-    ctx.textAlign = 'left';
-    ctx.fillText((i+1) + '.', colX[0]+8, y+14);
+    ctx.textAlign = 'right';
+    ctx.fillText((i+1)+'.', cols[0].x + cols[0].w, ry+22);
 
+    // Champion name
     ctx.fillStyle = '#ccc8b8';
-    ctx.fillText(name, colX[0]+30, y+14);
+    ctx.textAlign = 'left';
+    ctx.fillText(cName, cols[1].x + 40, ry+22);
 
+    // P1 pts
     ctx.fillStyle = '#6ab0e8';
     ctx.textAlign = 'right';
-    ctx.fillText(c.pts1.toLocaleString('fr-FR'), colX[1]+70, y+12);
-    ctx.font = '10px Georgia, serif';
+    ctx.font = '11px Georgia,serif';
+    ctx.fillText(formatPts(c.pts1), cols[2].x+cols[2].w, ry+16);
+    ctx.font = '9px Georgia,serif';
     ctx.fillStyle = '#555';
-    ctx.fillText('('+( c.ratio1*100).toFixed(2)+'%)', colX[1]+70, y+26);
+    ctx.fillText('('+( c.ratio1*100).toFixed(2)+'%)', cols[2].x+cols[2].w, ry+28);
 
-    ctx.font = '11px Georgia, serif';
+    // P2 pts
+    ctx.font = '11px Georgia,serif';
     ctx.fillStyle = '#e8846a';
-    ctx.fillText(c.pts2.toLocaleString('fr-FR'), colX[2]+70, y+12);
-    ctx.font = '10px Georgia, serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(formatPts(c.pts2), cols[3].x+cols[3].w, ry+16);
+    ctx.font = '9px Georgia,serif';
     ctx.fillStyle = '#555';
-    ctx.fillText('('+(c.ratio2*100).toFixed(2)+'%)', colX[2]+70, y+26);
+    ctx.fillText('('+( c.ratio2*100).toFixed(2)+'%)', cols[3].x+cols[3].w, ry+28);
 
-    ctx.font = '11px Georgia, serif';
+    // Importance
+    ctx.font = '11px Georgia,serif';
     ctx.fillStyle = '#7a7568';
-    ctx.fillText((c.weight*100).toFixed(2)+'%', colX[3]+70, y+14);
+    ctx.textAlign = 'right';
+    ctx.fillText((c.weight*100).toFixed(2)+'%', cols[4].x+cols[4].w, ry+22);
 
+    // Compat
+    ctx.font = 'bold 13px Georgia,serif';
     ctx.fillStyle = '#c8a96e';
-    ctx.font = 'bold 13px Georgia, serif';
-    ctx.fillText((c.champCompat*100).toFixed(1)+'%', colX[4]+40, y+14);
+    ctx.textAlign = 'right';
+    ctx.fillText((c.champCompat*100).toFixed(1)+'%', cols[5].x+cols[5].w, ry+22);
   });
 
   // Footer
-  ctx.font = 'italic 11px Georgia, serif';
+  var fy = y + top10.length * ROW_H + 18;
+  ctx.font = 'italic 10px Georgia,serif';
   ctx.fillStyle = '#3a3830';
   ctx.textAlign = 'center';
-  ctx.fillText('summoner-synergy.vercel.app', W/2, H-14);
+  ctx.fillText('summoner-compatibility.vercel.app', W/2, fy);
 }
 
-function roundRect(ctx, x, y, w, h, r, fill, stroke) {
-  ctx.beginPath();
-  ctx.moveTo(x+r, y);
-  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y,x+w,y+r,r);
-  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
-  ctx.lineTo(x+r, y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
-  ctx.lineTo(x, y+r); ctx.arcTo(x,y,x+r,y,r);
-  ctx.closePath();
-  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
-  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+function formatPts(n) {
+  // Format with thin-space thousands separator for readability
+  return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, '\u2009');
 }
 
 function finishExport(canvas, btn) {
   try {
     var link = document.createElement('a');
-    link.download = 'summoner-synergy.jpg';
-    link.href = canvas.toDataURL('image/jpeg', 0.92);
+    link.download = 'summoner-compatibility.jpg';
+    link.href = canvas.toDataURL('image/jpeg', 0.93);
     link.click();
   } catch(e) {
-    alert('Export impossible : ' + e.message + '\nEssayez depuis un serveur (pas en fichier local).');
+    alert(t('exportFail') + e.message + t('exportFail2'));
   }
   btn.disabled = false;
-  btn.innerHTML = '<span class="share-icon">🖼</span> Exporter en image';
+  btn.innerHTML = t('btnJpg');
 }
 
 document.addEventListener('keydown', function(e) {
-  if (e.key === 'Enter') startCompare();
+  if (e.key === 'Escape') closeModal();
+  if (e.key === 'Enter' && document.activeElement.tagName !== 'BUTTON') startCompare();
 });
+
+// Init
+applyLang();
 </script>
 </body>
 </html>
