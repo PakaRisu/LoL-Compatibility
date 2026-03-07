@@ -1,35 +1,51 @@
 const https = require('https');
 
-const DDRAGON_URL = 'https://ddragon.leagueoflegends.com/cdn/16.4.1/data/fr_FR/champion.json';
+const VERSIONS_URL = 'https://ddragon.leagueoflegends.com/api/versions.json';
 
-// Simple in-memory cache (dure le temps de vie de la fonction chaude)
+// In-memory cache
 let cache = null;
 let cacheTime = 0;
 const CACHE_TTL = 3600 * 1000; // 1h
 
-module.exports = function(req, res) {
+function fetchUrl(url) {
+  return new Promise(function(resolve, reject) {
+    https.get(url, function(r) {
+      let data = '';
+      r.on('data', function(c) { data += c; });
+      r.on('end', function() {
+        try { resolve(JSON.parse(data)); }
+        catch(e) { reject(new Error('JSON parse error: ' + e.message)); }
+      });
+    }).on('error', reject);
+  });
+}
+
+module.exports = async function(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Cache-Control', 'public, max-age=3600');
 
   const now = Date.now();
   if (cache && (now - cacheTime) < CACHE_TTL) {
-    res.status(200).json(cache);
-    return;
+    return res.status(200).json(cache);
   }
 
-  https.get(DDRAGON_URL, function(r) {
-    let data = '';
-    r.on('data', function(c) { data += c; });
-    r.on('end', function() {
-      try {
-        cache = JSON.parse(data);
-        cacheTime = now;
-        res.status(200).json(cache);
-      } catch(e) {
-        res.status(500).json({ error: 'Erreur parsing DDragon : ' + e.message });
-      }
-    });
-  }).on('error', function(e) {
-    res.status(500).json({ error: e.message });
-  });
+  try {
+    // Step 1: get latest DDragon version
+    const versions = await fetchUrl(VERSIONS_URL);
+    const version = versions[0];
+
+    // Step 2: fetch champion data with that version
+    const champUrl = `https://ddragon.leagueoflegends.com/cdn/${version}/data/fr_FR/champion.json`;
+    const champData = await fetchUrl(champUrl);
+
+    // Step 3: inject version + count so the frontend can use them
+    champData.version = version;
+    champData.champCount = Object.keys(champData.data).length;
+
+    cache = champData;
+    cacheTime = now;
+    return res.status(200).json(cache);
+  } catch(e) {
+    return res.status(500).json({ error: 'DDragon fetch error: ' + e.message });
+  }
 };

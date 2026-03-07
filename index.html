@@ -846,6 +846,181 @@
 
   header { position: relative; }
 
+
+  /* ── Champion count input ── */
+  .champ-count-row {
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    flex-wrap: wrap;
+  }
+  .champ-count-row label {
+    font-family: 'Cinzel', serif;
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    color: var(--text-dim);
+    text-transform: uppercase;
+  }
+  .champ-count-input-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .champ-count-row input {
+    width: 72px;
+    background: rgba(0,0,0,0.35);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 7px 10px;
+    color: var(--gold-light);
+    font-family: 'Cinzel', serif;
+    font-size: 0.9rem;
+    text-align: center;
+    outline: none;
+    cursor: default;
+  }
+  .champ-count-badge {
+    font-family: 'Cinzel', serif;
+    font-size: 0.55rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--bg-deep);
+    background: var(--gold-dark);
+    border-radius: 2px;
+    padding: 3px 7px;
+    white-space: nowrap;
+  }
+
+  /* ── Champion grid ── */
+  .all-champs-section { }
+
+  .section-title-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 16px;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .section-title-row .section-title { margin-bottom: 0; }
+
+  .champ-grid-meta {
+    font-size: 0.82rem;
+    font-style: italic;
+    color: var(--text-dim);
+  }
+
+  .champ-grid-filters {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+  }
+
+  .grid-filter {
+    padding: 5px 14px;
+    background: transparent;
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    color: var(--text-dim);
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s, background 0.2s;
+  }
+  .grid-filter.active, .grid-filter:hover {
+    border-color: var(--gold);
+    color: var(--gold-light);
+    background: rgba(200,169,110,0.07);
+  }
+
+  .champ-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+    gap: 10px;
+  }
+
+  .champ-tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 8px 4px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    cursor: default;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+  .champ-tile:hover {
+    border-color: var(--gold-dark);
+    background: rgba(200,169,110,0.06);
+  }
+
+  .champ-tile img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid transparent;
+    transition: border-color 0.15s;
+  }
+
+  /* Color-coded borders by compat level */
+  .champ-tile.compat-high img { border-color: #6ab0e8; }
+  .champ-tile.compat-mid  img { border-color: #c8a96e; }
+  .champ-tile.compat-low  img { border-color: #7a7568; }
+
+  .champ-tile-name {
+    font-family: 'Cinzel', serif;
+    font-size: 0.5rem;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    text-align: center;
+    line-height: 1.2;
+    max-width: 68px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .champ-tile-pct {
+    font-family: 'Cinzel', serif;
+    font-size: 0.6rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+  .compat-high .champ-tile-pct { color: #6ab0e8; }
+  .compat-mid  .champ-tile-pct { color: #c8a96e; }
+  .compat-low  .champ-tile-pct { color: #555; }
+
+  /* Tooltip on hover */
+  .champ-tile .tile-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    border: 1px solid var(--border-bright);
+    border-radius: 3px;
+    padding: 8px 10px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    z-index: 10;
+    pointer-events: none;
+    color: var(--text);
+    line-height: 1.5;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  }
+  .champ-tile:hover .tile-tooltip { display: block; }
+  .champ-tile .tile-tooltip .tip-p1 { color: #6ab0e8; }
+  .champ-tile .tile-tooltip .tip-p2 { color: #e8846a; }
+
 </style>
 </head>
 <body>
@@ -928,9 +1103,15 @@
       </div>
     </div>
 
+    <!-- Champion count -->
+    <div class="champ-count-row">
+      <label for="champCount" id="champ-count-label">🎯 Nombre de champions dans le jeu</label>
+      <input type="number" id="champCount" value="169" min="1" max="999" oninput="if(window._shareData) renderGrid(window._shareData, _gridFilter)" />
+    </div>
+
     <!-- Button -->
     <button class="btn-compare" id="compareBtn" onclick="startCompare()">
-      Analyser la Synergie
+      Analyser la Compatibilité
     </button>
 
     <!-- Status -->
@@ -1013,6 +1194,23 @@
         <tbody id="top-table-body">
         </tbody>
       </table>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Full champion grid -->
+    <div class="all-champs-section card" id="all-champs-section">
+      <div class="section-title-row">
+        <div class="section-title" id="all-champs-title">Tous les champions en commun</div>
+        <div class="champ-grid-meta" id="champ-grid-meta"></div>
+      </div>
+      <div class="champ-grid-filters">
+        <button class="grid-filter active" id="filter-all" onclick="setGridFilter('all', this)" data-i18n="filterAll">Tous</button>
+        <button class="grid-filter" id="filter-high" onclick="setGridFilter('high', this)" data-i18n="filterHigh">≥ 75%</button>
+        <button class="grid-filter" id="filter-mid" onclick="setGridFilter('mid', this)" data-i18n="filterMid">25–75%</button>
+        <button class="grid-filter" id="filter-low" onclick="setGridFilter('low', this)" data-i18n="filterLow">&lt; 25%</button>
+      </div>
+      <div class="champ-grid" id="champ-grid"></div>
     </div>
 
     <div class="divider"></div>
@@ -1110,8 +1308,9 @@
 </div>
 
 <script>
-var DDRAGON_BASE = 'https://ddragon.leagueoflegends.com/cdn/16.4.1';
+var DDRAGON_BASE = 'https://ddragon.leagueoflegends.com/cdn/16.4.1'; // updated on load
 var LANG = 'fr';
+var DDRAGON_VERSION = '16.4.1'; // updated on load
 
 // ── i18n ─────────────────────────────────────────────────────────────
 var I18N = {
@@ -1169,7 +1368,11 @@ var I18N = {
     jpgFooter: 'summoner-compatibility.vercel.app — PakaRisu',
     jpgFilename: 'summoner-compatibility.jpg',
     noCommon: 'Aucun champion joué en commun.',
-    noCommonJpg: 'No champions in common'
+    noCommonJpg: 'No champions in common',
+    champCountLabel: '🎯 Nombre de champions dans le jeu',
+    allChampsTitle: 'Tous les champions en commun',
+    filterAll: 'Tous', filterHigh: '≥ 75%', filterMid: '25–75%', filterLow: '< 25%',
+    gridMeta: function(n, total, pct) { return n+' champions en commun sur '+total+' ('+pct+'% du roster)'; }
   },
   en: {
     subtitle: 'Measure your affinity through your common champions!',
@@ -1225,7 +1428,11 @@ var I18N = {
     jpgFooter: 'summoner-compatibility.vercel.app — PakaRisu',
     jpgFilename: 'summoner-compatibility.jpg',
     noCommon: 'No champions played in common.',
-    noCommonJpg: 'No champions in common'
+    noCommonJpg: 'No champions in common',
+    champCountLabel: '🎯 Number of champions in the game',
+    allChampsTitle: 'All champions in common',
+    filterAll: 'All', filterHigh: '≥ 75%', filterMid: '25–75%', filterLow: '< 25%',
+    gridMeta: function(n, total, pct) { return n+' champions in common out of '+total+' ('+pct+'% of roster)'; }
   }
 };
 
@@ -1262,6 +1469,13 @@ function applyLang() {
   document.getElementById('modal-legal-label').textContent = t('modalLegalLabel');
   document.getElementById('modal-contact-label').textContent = t('modalContactLabel');
   document.getElementById('legal-text-content').textContent = t('legalText');
+  document.getElementById('champ-count-label').textContent  = t('champCountLabel');
+  document.getElementById('all-champs-title').textContent   = t('allChampsTitle');
+  document.getElementById('filter-all').textContent  = t('filterAll');
+  document.getElementById('filter-high').textContent = t('filterHigh');
+  document.getElementById('filter-mid').textContent  = t('filterMid');
+  document.getElementById('filter-low').textContent  = t('filterLow');
+  if (d) renderGrid(d, _gridFilter); // re-render meta text in current lang
   document.getElementById('th-champ').textContent      = t('thChamp');
   document.getElementById('th-importance').textContent = t('thImportance');
   document.getElementById('th-compat').textContent     = t('thCompat');
@@ -1345,6 +1559,20 @@ function apiFetch(endpoint) {
 }
 function getChampionData() {
   return apiFetch('/api/champions').then(function(d) {
+    // Auto-update DDragon version from API response
+    if (d.version) {
+      DDRAGON_VERSION = d.version;
+      DDRAGON_BASE = 'https://ddragon.leagueoflegends.com/cdn/' + d.version;
+    }
+    // Auto-update champion count
+    if (d.champCount) {
+      var input = document.getElementById('champCount');
+      if (input) {
+        input.value = d.champCount;
+        var badge = document.getElementById('champ-count-badge');
+        if (badge) badge.textContent = 'v' + d.version;
+      }
+    }
     var map={};
     Object.values(d.data).forEach(function(c){ map[c.key]=c; });
     return map;
@@ -1492,6 +1720,11 @@ function renderResults(name1,tag1,m1,name2,tag2,m2,champMap,s1,s2) {
   clearStatus();
   applyLang(); // refresh all dynamic text with current language
   document.getElementById('results').style.display='block';
+  renderGrid(window._shareData, 'all');
+  _gridFilter = 'all';
+  document.querySelectorAll('.grid-filter').forEach(function(b){ b.classList.remove('active'); });
+  var fa = document.getElementById('filter-all');
+  if (fa) fa.classList.add('active');
   document.getElementById('share-section').style.display='block';
   if (window.renderMathInElement) {
     window.renderMathInElement(document.querySelector('.formula-section'),{
@@ -1762,6 +1995,74 @@ function exportJPG() {
   } else if (i2url) {
     loadImg(i2url,function(img2){ drawAll(null,img2); });
   } else { drawAll(null,null); }
+}
+
+// ── Champion grid ────────────────────────────────────────────────────
+var _gridFilter = 'all';
+
+function setGridFilter(filter, btn) {
+  _gridFilter = filter;
+  document.querySelectorAll('.grid-filter').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderGrid(window._shareData, _gridFilter);
+}
+
+function renderGrid(d, filter) {
+  if (!d) return;
+  filter = filter || _gridFilter || 'all';
+
+  var total = parseInt(document.getElementById('champCount').value, 10) || 169;
+  var all = d.sharedChamps; // already sorted by weight
+  var n = all.length;
+  var pct = total > 0 ? (n / total * 100).toFixed(1) : '?';
+
+  // Meta line
+  var metaFn = I18N[LANG].gridMeta;
+  document.getElementById('champ-grid-meta').textContent = metaFn(n, total, pct);
+
+  // Filter
+  var filtered = all.filter(function(c) {
+    var cc = c.champCompat * 100;
+    if (filter === 'high') return cc >= 75;
+    if (filter === 'mid')  return cc >= 25 && cc < 75;
+    if (filter === 'low')  return cc < 25;
+    return true;
+  });
+
+  var grid = document.getElementById('champ-grid');
+  grid.innerHTML = '';
+
+  filtered.forEach(function(c) {
+    var champ = d.champMap[c.id];
+    var name  = champ ? champ.name : 'ID '+c.id;
+    var cc    = c.champCompat * 100;
+    var level = cc >= 75 ? 'compat-high' : cc >= 25 ? 'compat-mid' : 'compat-low';
+
+    var tile = document.createElement('div');
+    tile.className = 'champ-tile ' + level;
+
+    var imgHtml = champ
+      ? '<img src="'+DDRAGON_BASE+'/img/champion/'+champ.image.full+'" alt="'+name+'" loading="lazy" onerror="this.style.display='none'">'
+      : '<div style="width:40px;height:40px;border-radius:50%;background:rgba(200,169,110,0.08);display:flex;align-items:center;justify-content:center;font-size:1.1rem">?</div>';
+
+    // Tooltip with pts
+    var pts1Fmt = fmtPts(c.pts1);
+    var pts2Fmt = fmtPts(c.pts2);
+    var tip = '<div class="tile-tooltip">'
+      + '<strong style="color:var(--gold-light)">'+name+'</strong><br>'
+      + '<span class="tip-p1">'+d.name1+'#'+d.tag1+' : '+pts1Fmt+' pts ('+( c.ratio1*100).toFixed(2)+'%)</span><br>'
+      + '<span class="tip-p2">'+d.name2+'#'+d.tag2+' : '+pts2Fmt+' pts ('+( c.ratio2*100).toFixed(2)+'%)</span>'
+      + '</div>';
+
+    tile.innerHTML = imgHtml
+      + '<div class="champ-tile-name">'+name+'</div>'
+      + '<div class="champ-tile-pct">'+cc.toFixed(1)+'%</div>'
+      + tip;
+
+    grid.appendChild(tile);
+  });
+
+  document.getElementById('all-champs-section').style.display = 'block';
 }
 
 function fmtPts(n) {
