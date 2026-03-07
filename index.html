@@ -847,28 +847,15 @@
   header { position: relative; }
 
 
-  /* ── Champion count input ── */
-  .champ-count-row {
-    margin-bottom: 20px;
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    flex-wrap: wrap;
-  }
-  .champ-count-row label {
-    font-family: 'Cinzel', serif;
-    font-size: 0.65rem;
-    letter-spacing: 0.12em;
-    color: var(--text-dim);
-    text-transform: uppercase;
-  }
+  /* ── Champion count (dans le modal) ── */
   .champ-count-input-wrap {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 10px;
+    margin-bottom: 6px;
   }
-  .champ-count-row input {
-    width: 72px;
+  .champ-count-input-wrap input {
+    width: 76px;
     background: rgba(0,0,0,0.35);
     border: 1px solid var(--border);
     border-radius: 2px;
@@ -878,8 +865,9 @@
     font-size: 0.9rem;
     text-align: center;
     outline: none;
-    cursor: default;
+    transition: border-color 0.2s;
   }
+  .champ-count-input-wrap input:focus { border-color: var(--gold); }
   .champ-count-badge {
     font-family: 'Cinzel', serif;
     font-size: 0.55rem;
@@ -890,6 +878,11 @@
     border-radius: 2px;
     padding: 3px 7px;
     white-space: nowrap;
+  }
+  .champ-count-hint {
+    font-size: 0.78rem;
+    font-style: italic;
+    color: var(--text-dim);
   }
 
   /* ── Champion grid ── */
@@ -1103,12 +1096,6 @@
       </div>
     </div>
 
-    <!-- Champion count -->
-    <div class="champ-count-row">
-      <label for="champCount" id="champ-count-label">🎯 Nombre de champions dans le jeu</label>
-      <input type="number" id="champCount" value="169" min="1" max="999" oninput="if(window._shareData) renderGrid(window._shareData, _gridFilter)" />
-    </div>
-
     <!-- Button -->
     <button class="btn-compare" id="compareBtn" onclick="startCompare()">
       Analyser la Compatibilité
@@ -1302,6 +1289,20 @@
       </div>
       <div class="contact-signature">— PakaRisu</div>
     </div>
+
+    <div class="modal-divider"></div>
+
+    <!-- Champion count -->
+    <div class="modal-section">
+      <div class="modal-section-label" id="modal-champcount-label">🎯 Champions dans le jeu</div>
+      <div class="champ-count-input-wrap">
+        <input type="number" id="champCount" value="172" min="1" max="999"
+               oninput="if(window._shareData) renderGrid(window._shareData, _gridFilter)"
+               title="Mis à jour automatiquement depuis DDragon" />
+        <span class="champ-count-badge" id="champ-count-badge">auto</span>
+      </div>
+      <div class="champ-count-hint" id="modal-champcount-hint">Mis à jour automatiquement au chargement.</div>
+    </div>
   </div>
 </div>
 
@@ -1369,7 +1370,8 @@ var I18N = {
     jpgFilename: 'summoner-compatibility.jpg',
     noCommon: 'Aucun champion joué en commun.',
     noCommonJpg: 'No champions in common',
-    champCountLabel: '🎯 Nombre de champions dans le jeu',
+    champCountLabel: '🎯 Champions dans le jeu',
+    champCountHint: 'Mis à jour automatiquement au chargement.',
     allChampsTitle: 'Tous les champions en commun',
     filterAll: 'Tous', filterHigh: '≥ 75%', filterMid: '25–75%', filterLow: '< 25%',
     gridMeta: function(n, total, pct) { return n+' champions en commun sur '+total+' ('+pct+'% du roster)'; }
@@ -1429,7 +1431,8 @@ var I18N = {
     jpgFilename: 'summoner-compatibility.jpg',
     noCommon: 'No champions played in common.',
     noCommonJpg: 'No champions in common',
-    champCountLabel: '🎯 Number of champions in the game',
+    champCountLabel: '🎯 Champions in the game',
+    champCountHint: 'Automatically updated on load.',
     allChampsTitle: 'All champions in common',
     filterAll: 'All', filterHigh: '≥ 75%', filterMid: '25–75%', filterLow: '< 25%',
     gridMeta: function(n, total, pct) { return n+' champions in common out of '+total+' ('+pct+'% of roster)'; }
@@ -1443,50 +1446,56 @@ function t(k) {
 
 // ── applyLang — static + dynamic elements ───────────────────────────
 function applyLang() {
+  function setTxt(id, val) { var el=document.getElementById(id); if(el) el.textContent=val; }
+  function setHtml(id, val) { var el=document.getElementById(id); if(el) el.innerHTML=val; }
   var d = window._shareData;
   var name1 = d ? d.name1 : t('inv1');
   var tag1  = d ? d.tag1  : '';
   var name2 = d ? d.name2 : t('inv2');
   var tag2  = d ? d.tag2  : '';
 
-  document.getElementById('subtitle-text').textContent = t('subtitle');
-  document.getElementById('compareBtn').textContent    = t('btnCompare');
-  document.getElementById('score-label-text').textContent = t('scoreLabel');
-  document.getElementById('stat-lbl-champs').textContent  = t('statChamps');
-  document.getElementById('best-champ-title').textContent = t('bestTitle');
-  document.getElementById('top10-title').textContent  = t('top10');
-  document.getElementById('share-title-text').textContent = t('shareTitle');
-  document.getElementById('btn-copy').innerHTML = t('btnCopy');
-  document.getElementById('btn-jpg').innerHTML  = t('btnJpg');
-  document.getElementById('formula-title-text').textContent = t('formulaTitle');
-  document.getElementById('f1label').textContent = t('f1label');
-  document.getElementById('f2label').textContent = t('f2label');
-  document.getElementById('f3label').textContent = t('f3label');
-  document.getElementById('f4label').textContent = t('f4label');
-  document.getElementById('f-footer').textContent = t('fFooter');
-  document.getElementById('modal-title-text').textContent = t('optionsTitle');
-  document.getElementById('modal-lang-label').textContent  = t('modalLangLabel');
-  document.getElementById('modal-legal-label').textContent = t('modalLegalLabel');
-  document.getElementById('modal-contact-label').textContent = t('modalContactLabel');
-  document.getElementById('legal-text-content').textContent = t('legalText');
-  document.getElementById('champ-count-label').textContent  = t('champCountLabel');
-  document.getElementById('all-champs-title').textContent   = t('allChampsTitle');
-  document.getElementById('filter-all').textContent  = t('filterAll');
-  document.getElementById('filter-high').textContent = t('filterHigh');
-  document.getElementById('filter-mid').textContent  = t('filterMid');
-  document.getElementById('filter-low').textContent  = t('filterLow');
+  setTxt('subtitle-text', t('subtitle'))
+  setTxt('compareBtn', t('btnCompare'))
+  setTxt('score-label-text', t('scoreLabel'))
+  setTxt('stat-lbl-champs', t('statChamps'))
+  setTxt('best-champ-title', t('bestTitle'))
+  setTxt('top10-title', t('top10'))
+  setTxt('share-title-text', t('shareTitle'))
+  setHtml('btn-copy', t('btnCopy'))
+  setHtml('btn-jpg', t('btnJpg'))
+  setTxt('formula-title-text', t('formulaTitle'))
+  setTxt('f1label', t('f1label'))
+  setTxt('f2label', t('f2label'))
+  setTxt('f3label', t('f3label'))
+  setTxt('f4label', t('f4label'))
+  setTxt('f-footer', t('fFooter'))
+  setTxt('modal-title-text', t('optionsTitle'))
+  setTxt('modal-lang-label', t('modalLangLabel'))
+  setTxt('modal-legal-label', t('modalLegalLabel'))
+  setTxt('modal-contact-label', t('modalContactLabel'))
+  setTxt('legal-text-content', t('legalText'))
+  var mccl = document.getElementById('modal-champcount-label');
+  if (mccl) mccl.textContent = t('champCountLabel');
+  var mchi = document.getElementById('modal-champcount-hint');
+  if (mchi) mchi.textContent = t('champCountHint');
+  var act = document.getElementById('all-champs-title');
+  if (act) act.textContent = t('allChampsTitle');
+  setTxt('filter-all', t('filterAll'))
+  setTxt('filter-high', t('filterHigh'))
+  setTxt('filter-mid', t('filterMid'))
+  setTxt('filter-low', t('filterLow'))
   if (d) renderGrid(d, _gridFilter); // re-render meta text in current lang
-  document.getElementById('th-champ').textContent      = t('thChamp');
-  document.getElementById('th-importance').textContent = t('thImportance');
-  document.getElementById('th-compat').textContent     = t('thCompat');
+  setTxt('th-champ', t('thChamp'))
+  setTxt('th-importance', t('thImportance'))
+  setTxt('th-compat', t('thCompat'))
 
   // Player-dependent labels
-  document.getElementById('label-p1').textContent = '⬡ ' + (d ? name1+'#'+tag1 : t('inv1'));
-  document.getElementById('label-p2').textContent = '⬡ ' + (d ? name2+'#'+tag2 : t('inv2'));
-  document.getElementById('stat-lbl-p1').textContent = t('statPts') + (d ? name1 : t('inv1'));
-  document.getElementById('stat-lbl-p2').textContent = t('statPts') + (d ? name2 : t('inv2'));
-  document.getElementById('th-p1').textContent = d ? name1 : t('inv1');
-  document.getElementById('th-p2').textContent = d ? name2 : t('inv2');
+  setTxt('label-p1', '⬡ ' + (d ? name1+'#'+tag1 : t('inv1')))
+  setTxt('label-p2', '⬡ ' + (d ? name2+'#'+tag2 : t('inv2')))
+  setTxt('stat-lbl-p1', t('statPts') + (d ? name1 : t('inv1')))
+  setTxt('stat-lbl-p2', t('statPts') + (d ? name2 : t('inv2')))
+  setTxt('th-p1', d ? name1 : t('inv1'))
+  setTxt('th-p2', d ? name2 : t('inv2'))
 
   // Re-render formula notes (they contain inline KaTeX $...$)
   setFormulaNote('f1note', t('f1note'));
@@ -1496,10 +1505,10 @@ function applyLang() {
 
   // Re-render score description if results visible
   if (d) {
-    document.getElementById('score-desc').textContent = getCompatDesc(d.compat);
+    setTxt('score-desc', getCompatDesc(d.compat))
     // Re-render table header player names
-    document.getElementById('th-p1').textContent = name1;
-    document.getElementById('th-p2').textContent = name2;
+    setTxt('th-p1', name1)
+    setTxt('th-p2', name2)
     // Regenerate table rows (language-independent but re-render for safety)
   }
 
