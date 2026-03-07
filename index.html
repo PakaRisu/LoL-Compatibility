@@ -1023,7 +1023,7 @@
   <header>
     <div class="header-crest"></div>
     <h1>Summoner Compatibility</h1>
-    <button class="btn-options" onclick="openModal()">⚙ Options</button>
+    <button class="btn-options" id="btn-options-text" onclick="openModal()">⚙ Options</button>
     <p class="subtitle" id="subtitle-text">Mesurez votre affinité par la maîtrise des champions</p>
   </header>
 
@@ -1111,7 +1111,7 @@
 
     <!-- Score -->
     <div class="score-section card">
-      <div class="section-title">Indice de Compatibilité</div>
+      <div class="section-title" id="score-section-title">Compatibility Index</div>
       <div class="score-circle-wrap">
         <svg class="score-svg" width="180" height="180" viewBox="0 0 180 180">
           <circle cx="90" cy="90" r="76" fill="none" stroke="rgba(200,169,110,0.08)" stroke-width="8"/>
@@ -1224,7 +1224,7 @@
       <div class="formula-content">
         <div class="formula-block">
           <div class="formula-label" id="f1label">1. Ratio d'un champion pour un joueur</div>
-          <div class="formula-eq katex-eq">$$r_i = \frac{\text{points}_i}{\text{total points joueur}}$$</div>
+          <div class="formula-eq katex-eq" id="f1eq">$$r_i = \\frac{\\text{pts}_i}{\\text{pts}_{\\text{total}}}$$</div>
           <div class="formula-note" id="f1note">Exemple : 100 000 pts sur Ahri, 200 000 pts au total → $r = 0{,}50$</div>
         </div>
         <div class="formula-block">
@@ -1348,6 +1348,8 @@ var I18N = {
     f4note: 'Rarely-played champions barely affect the result \u2014 only your true favourites count.',
     fFooter: 'This method is fairer regardless of total mastery points: it weights each champion\'s compatibility by its ratio relative to total mastery.',
     inv1: 'Summoner 1', inv2: 'Summoner 2',
+scoreTitle: 'Compatibility Index',
+    btnOptions: '⚙ Options',
     optionsTitle: '\u2699 Options',
     modalLangLabel: 'Language',
     modalLegalLabel: '\ud83d\udcdc Legal',
@@ -1409,6 +1411,8 @@ var I18N = {
     f4note: 'Les champions peu jou\xe9s n\'influencent quasiment pas le r\xe9sultat \u2014 seuls vos vrais favoris comptent.',
     fFooter: 'Cette m\xe9thode permet d\u2019\xeatre plus \xe9quitable selon le nombre total de points de ma\xeetrise, et pond\xe8re la moyenne de compatibilit\xe9 de chaque champion selon son ratio par rapport aux ma\xeetrises totales.',
     inv1: 'Invocateur 1', inv2: 'Invocateur 2',
+scoreTitle: 'Indice de Compatibilité',
+    btnOptions: '⚙ Options',
     optionsTitle: '\u2699 Options',
     modalLangLabel: 'Langue',
     modalLegalLabel: '\ud83d\udcdc Mentions l\xe9gales',
@@ -1470,6 +1474,8 @@ var I18N = {
     f4note: 'Selten gespielte Champions beeinflussen das Ergebnis kaum \u2014 nur deine echten Favoriten z\xe4hlen.',
     fFooter: 'Diese Methode ist fairer bez\xfcglich der Gesamtzahl der Meisterschaftspunkte und gewichtet die Kompatibilit\xe4t jedes Champions nach seinem Verh\xe4ltnis zur Gesamtmeisterschaft.',
     inv1: 'Beschw\xf6rer 1', inv2: 'Beschw\xf6rer 2',
+scoreTitle: 'Kompatibilitätsindex',
+    btnOptions: '⚙ Optionen',
     optionsTitle: '\u2699 Optionen',
     modalLangLabel: 'Sprache',
     modalLegalLabel: '\ud83d\udcdc Rechtliches',
@@ -1531,6 +1537,8 @@ var I18N = {
     f4note: 'Los campeones poco jugados apenas afectan el resultado \u2014 solo cuentan tus verdaderos favoritos.',
     fFooter: 'Este m\xe9todo es m\xe1s justo independientemente de los puntos de maestr\xeda totales: pondera la compatibilidad de cada campe\xf3n por su ratio respecto a la maestr\xeda total.',
     inv1: 'Invocador 1', inv2: 'Invocador 2',
+scoreTitle: 'Índice de Compatibilidad',
+    btnOptions: '⚙ Opciones',
     optionsTitle: '\u2699 Opciones',
     modalLangLabel: 'Idioma',
     modalLegalLabel: '\ud83d\udcdc Legal',
@@ -1592,6 +1600,8 @@ var I18N = {
     f4note: 'I campioni poco giocati influenzano a malapena il risultato \u2014 contano solo i tuoi veri preferiti.',
     fFooter: 'Questo metodo \xe8 pi\xf9 equo indipendentemente dai punti maestria totali: pondera la compatibilit\xe0 di ogni campione in base al suo rapporto rispetto alla maestria totale.',
     inv1: 'Convocatore 1', inv2: 'Convocatore 2',
+scoreTitle: 'Indice di Compatibilità',
+    btnOptions: '⚙ Opzioni',
     optionsTitle: '\u2699 Opzioni',
     modalLangLabel: 'Lingua',
     modalLegalLabel: '\ud83d\udcdc Legale',
@@ -1653,6 +1663,8 @@ var I18N = {
     f4note: '\uc801\uac8c \ud50c\ub808\uc774\ud55c \uccfc\ud53c\uc5b8\uc740 \uacb0\uacfc\uc5d0 \uac70\uc758 \uc601\ud5a5\uc744 \uc8fc\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.',
     fFooter: '\uc774 \ubc29\ubc95\uc740 \uc804\uccb4 \uc219\ub828\ub3c4 \ud3ec\uc778\ud2b8\uc5d0 \uad00\uacc4\uc5c6\uc774 \ub354 \uacf5\ud3c9\ud558\uba70, \uac01 \uccfc\ud53c\uc5b8\uc758 \ud638\ud658\uc131\uc744 \uc804\uccb4 \uc219\ub828\ub3c4 \ub300\ube44 \ube44\uc728\ub85c \uac00\uc911\ud569\ub2c8\ub2e4.',
     inv1: '\uc18c\ud658\uc0ac 1', inv2: '\uc18c\ud658\uc0ac 2',
+scoreTitle: '호환성 지수',
+    btnOptions: '⚙ 옵션',
     optionsTitle: '\u2699 \uc635\uc158',
     modalLangLabel: '\uc5b8\uc5b4',
     modalLegalLabel: '\ud83d\udcdc \ubc95\uc801 \uc815\ubcf4',
@@ -1717,6 +1729,8 @@ function applyLang() {
   setTxt('f3label', t('f3label'))
   setTxt('f4label', t('f4label'))
   setTxt('f-footer', t('fFooter'))
+  setTxt('score-section-title', t('scoreTitle'))
+  setHtml('btn-options-text', t('btnOptions'))
   setTxt('modal-title-text', t('optionsTitle'))
   setTxt('modal-lang-label', t('modalLangLabel'))
   setTxt('modal-legal-label', t('modalLegalLabel'))
@@ -2168,7 +2182,7 @@ function exportJPG() {
       {x:576,w:86,  a:'right'},   // importance
       {x:670,w:82,  a:'right'}    // compat
     ];
-    var headers=['#','Champion',d.name1,d.name2,'Importance','Compat.'];
+    var headers=['#',t('thChamp'),d.name1,d.name2,t('thImportance'),t('thCompat')];
     var TY=HEADER_H;
 
     // Table header
