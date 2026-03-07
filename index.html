@@ -2051,7 +2051,7 @@ function renderGrid(d, filter) {
     tile.className = 'champ-tile ' + level;
 
     var imgHtml = champ
-      ? '<img src="'+DDRAGON_BASE+'/img/champion/'+champ.image.full+'" alt="'+name+'" loading="lazy" onerror="this.style.display='none'">'
+      ? '<img src="'+DDRAGON_BASE+'/img/champion/'+champ.image.full+'" alt="'+name+'" loading="lazy">' 
       : '<div style="width:40px;height:40px;border-radius:50%;background:rgba(200,169,110,0.08);display:flex;align-items:center;justify-content:center;font-size:1.1rem">?</div>';
 
     // Tooltip with pts
