@@ -2166,7 +2166,7 @@ function startCompare() {
                 ic1.alt=name1; ic1.style.display='block';
                 ic2.src=DDRAGON_BASE+'/img/profileicon/'+s2.profileIconId+'.png';
                 ic2.alt=name2; ic2.style.display='block';
-                renderResults(name1,tag1,m1,name2,tag2,m2,champMap,s1,s2);
+                renderResults(name1,tag1,m1,name2,tag2,m2,champMap,s1,s2,a1.puuid,region1,a2.puuid,region2);
               });
             });
           });
@@ -2180,7 +2180,7 @@ function startCompare() {
 }
 
 // ── Render ───────────────────────────────────────────────────────────
-function renderResults(name1,tag1,m1,name2,tag2,m2,champMap,s1,s2) {
+function renderResults(name1,tag1,m1,name2,tag2,m2,champMap,s1,s2,puuid1,region1,puuid2,region2) {
   var map1={},map2={};
   m1.forEach(function(m){ map1[m.championId]=m.championPoints; });
   m2.forEach(function(m){ map2[m.championId]=m.championPoints; });
@@ -2256,7 +2256,7 @@ function renderResults(name1,tag1,m1,name2,tag2,m2,champMap,s1,s2) {
 
   window._shareData={
     name1:name1,tag1:tag1,name2:name2,tag2:tag2,
-    _puuid1:a1.puuid,_region1:region1,_puuid2:a2.puuid,_region2:region2,
+    _puuid1:puuid1,_region1:region1,_puuid2:puuid2,_region2:region2,
     compat:compat,compatStr:compatStr,
     sharedChamps:sharedChamps,champMap:champMap,
     icon1Id:s1?s1.profileIconId:null, icon2Id:s2?s2.profileIconId:null
@@ -2266,10 +2266,10 @@ function renderResults(name1,tag1,m1,name2,tag2,m2,champMap,s1,s2) {
   applyLang(); // refresh all dynamic text with current language
   document.getElementById('results').style.display='block';
   // Load side panels with the masteries already fetched
-  loadSidePanel('left',  window._shareData._puuid1, window._shareData._region1,
-                name1+'#'+tag1, m1);
-  loadSidePanel('right', window._shareData._puuid2, window._shareData._region2,
-                name2+'#'+tag2, m2);
+  if (puuid1 && puuid2) {
+    loadSidePanel('left',  puuid1, region1, name1+'#'+tag1, m1);
+    loadSidePanel('right', puuid2, region2, name2+'#'+tag2, m2);
+  }
   renderGrid(window._shareData, 'all');
   _gridFilter = 'all';
   document.querySelectorAll('.grid-filter').forEach(function(b){ b.classList.remove('active'); });
